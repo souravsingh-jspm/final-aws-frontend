@@ -4,7 +4,7 @@ import { useSWRConfig } from "swr";
 
 import {
   useGetAllGarmentsService,
-  useAddGarmentService,
+  // useAddGarmentService,
   useUpdateGarmentService,
   useDeleteGarmentById,
 } from "../../services/Garment";
@@ -67,7 +67,7 @@ const Garment: React.FC = () => {
   const { mutate } = useSWRConfig();
 
   const listSwr = useGetAllGarmentsService();
-  const createMut = useAddGarmentService();
+  // const createMut = useAddGarmentService();
   const updateMut = useUpdateGarmentService();
   const deleteMut = useDeleteGarmentById();
 
@@ -121,7 +121,7 @@ const Garment: React.FC = () => {
     );
 
     try {
-      const res = await createMut.trigger({ body: { garment_name: nameTrim } });
+      // const res = await createMut.trigger({ body: { garment_name: nameTrim } });
       await mutate(SWR_KEY);
       setGarmentName("");
       setEditingId(null);

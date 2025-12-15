@@ -32,14 +32,14 @@ const App = () => {
               index
               path="/admin-garment"
               element={
-                <Garment services={[]} onEdit={() => {}} onDelete={() => {}} />
+                <Garment  />
               }
             />
             <Route
               index
               path="/admin-customer"
               element={
-                <Customer services={[]} onEdit={() => {}} onDelete={() => {}} />
+                <Customer />
               }
             />
           </Route>

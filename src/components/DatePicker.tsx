@@ -46,6 +46,7 @@ export default function DatePicker({
   formatDate = (d: Date) => d.toLocaleDateString(locale),
 }: DatePickerProps) {
   const [open, setOpen] = useState(false);
+
   const [internalDate, setInternalDate] = useState<Date | null>(value);
   const [viewDate, setViewDate] = useState<Date>(
     value ? startOfMonth(value) : startOfMonth(new Date())
@@ -239,13 +240,13 @@ export default function DatePicker({
                   data-day={d}
                   type="button"
                   onClick={() => handleSelect(d)}
-                  disabled={disabled}
+                  disabled={disabled ?? undefined}
                   className={`p-2 rounded focus:outline-none focus:ring-2 focus:ring-indigo-400 ${
                     disabled
                       ? "cursor-not-allowed text-gray-300"
                       : "hover:bg-gray-100"
                   } ${selected ? "bg-indigo-600 text-white" : ""}`}
-                  aria-pressed={selected}
+                  aria-pressed={selected ?? false}
                 >
                   <span className="sr-only">{dateObj.toDateString()}</span>
                   <span aria-hidden>{d}</span>

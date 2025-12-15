@@ -40,6 +40,12 @@ type Order = {
   return_expected_by?: string; // order-level date (ISO)
   createdAt?: string;
   updatedAt?: string;
+  status?: string;
+  availability_status?: string;
+  quantity?: number;
+  customer_phone?: string;
+  customer_name?: string;
+  // optional nested expansions
   items?: OrderItem[] | null;
 };
 
@@ -53,19 +59,19 @@ function unwrapArray<T>(raw: any): T[] {
   if (raw && Array.isArray(raw.items)) return raw.items;
   return [];
 }
-function unwrapSingle<T>(raw: any): T | null {
-  if (!raw) return null;
-  if (
-    raw &&
-    raw.data &&
-    typeof raw.data === "object" &&
-    !Array.isArray(raw.data)
-  )
-    return raw.data as T;
-  if (raw && typeof raw === "object" && ("order_id" in raw || "id" in raw))
-    return raw as T;
-  return null;
-}
+// function unwrapSingle<T>(raw: any): T | null {
+//   if (!raw) return null;
+//   if (
+//     raw &&
+//     raw.data &&
+//     typeof raw.data === "object" &&
+//     !Array.isArray(raw.data)
+//   )
+//     return raw.data as T;
+//   if (raw && typeof raw === "object" && ("order_id" in raw || "id" in raw))
+//     return raw as T;
+//   return null;
+// }
 
 /* ---------- Modal ---------- */
 const Modal: React.FC<{
@@ -97,7 +103,7 @@ export default function OrderList(): JSX.Element {
   const [error, setError] = useState<string | null>(null);
 
   const [detailsOrder, setDetailsOrder] = useState<Order | null>(null);
-  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [detailsLoading] = useState(false);
 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -161,38 +167,38 @@ export default function OrderList(): JSX.Element {
     }
   }
 
-  async function fetchOrderDetails(order_id: string) {
-    setDetailsLoading(true);
-    try {
-      const res = await fetch(`${ORDER_BASE}/${encodeURIComponent(order_id)}`, {
-        method: "GET",
-      });
-      const raw = await res.json().catch(() => null);
-      console.debug("GET order details raw:", raw);
+  // async function fetchOrderDetails(order_id: string) {
+  //   setDetailsLoading(true);
+  //   try {
+  //     const res = await fetch(`${ORDER_BASE}/${encodeURIComponent(order_id)}`, {
+  //       method: "GET",
+  //     });
+  //     const raw = await res.json().catch(() => null);
+  //     console.debug("GET order details raw:", raw);
 
-      const ord =
-        unwrapSingle<Order>(raw) || (raw && raw.data ? raw.data : null);
-      if (ord) {
-        setDetailsOrder(ord);
-      } else if (raw && Array.isArray(raw) && raw.length > 0) {
-        setDetailsOrder(raw[0]);
-      } else {
-        setDetailsOrder(null);
-        setError("Order details not returned by server");
-      }
-    } catch (err: any) {
-      setError(err?.message || "Failed to fetch order details");
-      setDetailsOrder(null);
-    } finally {
-      setDetailsLoading(false);
-    }
-  }
+  //     const ord =
+  //       unwrapSingle<Order>(raw) || (raw && raw.data ? raw.data : null);
+  //     if (ord) {
+  //       setDetailsOrder(ord);
+  //     } else if (raw && Array.isArray(raw) && raw.length > 0) {
+  //       setDetailsOrder(raw[0]);
+  //     } else {
+  //       setDetailsOrder(null);
+  //       setError("Order details not returned by server");
+  //     }
+  //   } catch (err: any) {
+  //     setError(err?.message || "Failed to fetch order details");
+  //     setDetailsOrder(null);
+  //   } finally {
+  //     setDetailsLoading(false);
+  //   }
+  // }
 
   // open summary immediately then fetch details to populate modal
-  function openDetails(order: Order) {
-    setDetailsOrder(order); // show quick summary if available
-    fetchOrderDetails(order.order_id);
-  }
+  // function openDetails(order: Order) {
+  //   setDetailsOrder(order); // show quick summary if available
+  //   fetchOrderDetails(order.order_id);
+  // }
 
   function closeDetails() {
     setDetailsOrder(null);

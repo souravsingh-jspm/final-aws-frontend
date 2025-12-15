@@ -22,9 +22,9 @@ export interface CommonPaginationType<T> {
   count: number;
 }
 
-const token =
-  localStorage.getItem("token") &&
-  JSON.parse(localStorage.getItem("token") ?? "");
+// const token =
+//   localStorage.getItem("token") &&
+//   JSON.parse(localStorage.getItem("token") ?? "");
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
