@@ -15,11 +15,11 @@ type ItemRow = {
 };
 
 /* ---------------- Endpoints (adjust if needed) ---------------- */
-const CUSTOMER_BASE = "http://localhost:3001/customer/customer";
-const GARMENT_BASE = "http://localhost:3001/garment/garment";
-const SERVICE_BASE = "http://localhost:3001/service/service";
-const ORDER_BASE = "http://localhost:3001/order/order";
-const ORDER_ITEM_BASE = "http://localhost:3001/order-item/order-item";
+const CUSTOMER_BASE = "http://15.206.204.80:3000/customer/customer";
+const GARMENT_BASE = "http://15.206.204.80:3000/garment/garment";
+const SERVICE_BASE = "http://15.206.204.80:3000/service/service";
+const ORDER_BASE = "http://15.206.204.80:3000/order/order";
+const ORDER_ITEM_BASE = "http://15.206.204.80:3000/order-item/order-item";
 
 /* ---------------- Helpers ---------------- */
 function uid(prefix = "") {

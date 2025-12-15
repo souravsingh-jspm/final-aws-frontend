@@ -43,7 +43,7 @@ type Order = {
   items?: OrderItem[] | null;
 };
 
-const ORDER_BASE = "http://localhost:3001/order/order";
+const ORDER_BASE = "http://15.206.204.80:3000/order/order";
 
 /* ---------- helpers to unwrap wrapped responses ---------- */
 function unwrapArray<T>(raw: any): T[] {
@@ -131,7 +131,7 @@ export default function OrderList(): JSX.Element {
     setError(null);
     try {
       const url = searchTerm
-        ? `http://localhost:3001/customer/customer-search?search=${encodeURIComponent(
+        ? `http://15.206.204.80:3000/customer/customer-search?search=${encodeURIComponent(
             searchTerm
           )}`
         : ORDER_BASE;

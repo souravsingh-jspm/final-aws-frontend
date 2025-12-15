@@ -8,6 +8,8 @@ import Orders from "./pages/orders/Orders";
 import OrderItems from "./pages/OrderItems/OrderItems";
 import OrderList from "./pages/orders/Orders";
 import CustomerOrders from "./pages/orders/CustomerOrders";
+// import SignIn from "./pages/auth/SignIn";
+// import SignUp from "./pages/auth/SignUp";
 
 const App = () => {
   return (
@@ -15,6 +17,8 @@ const App = () => {
       <Router>
         <Routes>
           <Route element={<AppLayout />}>
+            {/* <Route index path="/signin" element={<SignIn />} />
+            <Route index path="/signup" element={<SignUp />} /> */}
             <Route index path="/" element={<Home />} />
             <Route path="/orders" element={<OrderList />} />
             <Route

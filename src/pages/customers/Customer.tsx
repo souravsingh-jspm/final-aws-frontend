@@ -15,7 +15,7 @@ type Customer = {
   customer_updatedAt?: string;
 };
 
-const BASE = "http://localhost:3001/customer/customer";
+const BASE = "http://15.206.204.80:3000/customer/customer";
 
 /* ---------- helpers for unwrapping API wrapper ---------- */
 function unwrapArray<T>(raw: any): T[] {
