@@ -1,5 +1,6 @@
-import { API_URL } from "@/constant/appConstant";
+// import { API_URL } from "@/constant/appConstant";
 import axios, { type AxiosResponse } from "axios";
+export const API_URL = "/.netlify/functions";
 
 export interface ApiResponse<T> {
   data: T;
