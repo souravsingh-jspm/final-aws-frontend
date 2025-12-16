@@ -1,7 +1,6 @@
 import React, { JSX, useEffect, useState } from "react";
 import DatePicker from "../../components/DatePicker";
 
-/* ---------------- Types ---------------- */
 type Customer = { customer_id: string; customer_name: string };
 type Garment = { garment_id: string; garment_name: string };
 type Service = { service_id: string; service_name: string; garment_id: string };
@@ -11,17 +10,14 @@ type ItemRow = {
   garment_id?: string;
   service_id?: string;
   quantity?: number;
-  // removed per-row availability and return_expected_by
 };
 
-/* ---------------- Endpoints (adjust if needed) ---------------- */
 const CUSTOMER_BASE = "http://15.206.204.80:3000/customer/customer";
 const GARMENT_BASE = "http://15.206.204.80:3000/garment/garment";
 const SERVICE_BASE = "http://15.206.204.80:3000/service/service";
 const ORDER_BASE = "http://15.206.204.80:3000/order/order";
 const ORDER_ITEM_BASE = "http://15.206.204.80:3000/order-item/order-item";
 
-/* ---------------- Helpers ---------------- */
 function uid(prefix = "") {
   return prefix + Math.random().toString(36).slice(2, 9);
 }
@@ -48,7 +44,6 @@ function unwrapSingle<T>(raw: any): T | null {
   return null;
 }
 
-/* ---------------- Component ---------------- */
 export default function OrderCreator(): JSX.Element {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [garments, setGarments] = useState<Garment[]>([]);
@@ -65,7 +60,6 @@ export default function OrderCreator(): JSX.Element {
     },
   ]);
 
-  // Order-level fields (single selection for whole order)
   const [orderAvailability, setOrderAvailability] = useState<
     "LOW" | "MODERATE" | "HIGH" | string | undefined
   >("MODERATE");
@@ -130,7 +124,6 @@ export default function OrderCreator(): JSX.Element {
       if (!it.quantity || it.quantity < 1)
         return `Quantity for item ${i + 1} must be at least 1.`;
     }
-    // order-level fields
     if (!orderReturnExpectedBy)
       return "Please select the expected return date for the order.";
     if (!orderAvailability) return "Please select availability for the order.";
@@ -151,7 +144,10 @@ export default function OrderCreator(): JSX.Element {
 
     setSubmitting(true);
     try {
-      const total_quantity = items.reduce((sum, item) => sum + (item.quantity ?? 0),0);
+      const total_quantity = items.reduce(
+        (sum, item) => sum + (item.quantity ?? 0),
+        0
+      );
 
       const ordPayload = {
         customer_id: customerId,
@@ -227,7 +223,6 @@ export default function OrderCreator(): JSX.Element {
       </header>
 
       <main className="space-y-6">
-        {/* Customer */}
         <section className="bg-white border rounded-lg p-4 shadow-sm">
           <h2 className="text-lg font-medium mb-3">Customer</h2>
           {loading ? (
@@ -250,7 +245,6 @@ export default function OrderCreator(): JSX.Element {
           )}
         </section>
 
-        {/* Order-level details */}
         <section className="bg-white border rounded-lg p-4 shadow-sm">
           <h2 className="text-lg font-medium mb-3">Order details</h2>
 
@@ -295,7 +289,6 @@ export default function OrderCreator(): JSX.Element {
           </div>
         </section>
 
-        {/* Items */}
         <section className="bg-white border rounded-lg p-4 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-lg font-medium">Order Items</h2>

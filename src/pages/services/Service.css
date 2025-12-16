@@ -1,0 +1,313 @@
+/* =====================================================
+   ROOT
+   ===================================================== */
+
+.services {
+  padding: 16px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #111827;
+  background-color: #ffffff;
+}
+
+/* =====================================================
+   HEADER
+   ===================================================== */
+
+.services header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.services h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.services header button {
+  align-self: flex-start;
+  height: 40px;
+  padding: 0 14px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: none;
+  background-color: #2563eb;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+/* =====================================================
+   ERROR / STATUS TEXT
+   ===================================================== */
+
+.services > div {
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+
+.service-danger {
+  color: #dc2626;
+}
+/* =====================================================
+   TABLE – MOBILE CARD VIEW
+   ===================================================== */
+
+.services table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Hide header on mobile */
+.services thead {
+  display: none;
+}
+
+/* Card rows */
+.services tbody tr {
+  display: block;
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.services tbody tr:last-child {
+  border-bottom: none;
+}
+
+.services tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+.services tbody td {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 14px;
+}
+
+/* Mobile labels */
+.services tbody td:nth-child(1)::before {
+  content: "Name";
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.services tbody td:nth-child(2)::before {
+  content: "Garment";
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.services tbody td:nth-child(3)::before {
+  content: "Actions";
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* =====================================================
+   ACTIONS
+   ===================================================== */
+
+.services tbody td:last-child div {
+  display: flex;
+  gap: 16px;
+}
+
+.services tbody button {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.services tbody button:first-child {
+  color: #2563eb;
+}
+
+.services tbody button:last-child {
+  color: #dc2626;
+  opacity: 0.8;
+}
+
+.services tbody button:last-child:hover {
+  opacity: 1;
+}
+
+.service-edit-btn {
+  background-color: #2563eb;
+}
+
+/* =====================================================
+   MODAL OVERLAY
+   ===================================================== */
+
+.services > div > div > div {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+/* Modal box */
+.services > div > div > div > div {
+  background: #ffffff;
+  width: 100%;
+  max-width: 420px;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+/* Modal header */
+.services > div > div > div > div > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.services > div > div > div > div > div:first-child button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* =====================================================
+   MODAL FORM
+   ===================================================== */
+
+.services form {
+  display: grid;
+  gap: 14px;
+}
+
+.services label {
+  font-size: 14px;
+}
+
+.services input,
+.services select {
+  height: 42px;
+  padding: 0 12px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  width: 100%;
+}
+
+.services input:focus,
+.services select:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
+/* Validation error */
+.services form > div {
+  font-size: 13px;
+  color: #dc2626;
+}
+
+/* Modal actions */
+.services form > div:last-child {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.services form button[type="button"] {
+  background: transparent;
+  border: 1px solid #d1d5db;
+  color: #374151;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 8px;
+}
+
+.services form button[type="submit"] {
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+  height: 40px;
+  padding: 0 16px;
+  border-radius: 8px;
+}
+
+.service-form {
+  background-color: #ffffff;
+  padding: 16px;
+  border-radius: 8px;
+  width: 500px;
+}
+.form-select-garment {
+  height: 42px;
+  padding: 0 12px;
+  width: 100%;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+}
+
+/* =====================================================
+   TABLET & DESKTOP
+   ===================================================== */
+
+@media (min-width: 768px) {
+  .services {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  /* Header horizontal */
+  .services header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  /* Restore table */
+  .services thead {
+    display: table-header-group;
+  }
+
+  .services tbody tr {
+    display: table-row;
+    padding: 0;
+  }
+
+  .services h2 + div {
+    margin-top: 4px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: #6b7280;
+  }
+
+  .services tbody td {
+    display: table-cell;
+    padding: 14px 16px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .services tbody td::before {
+    display: none;
+  }
+
+  .services thead th {
+    padding: 14px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    background-color: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+    color: #374151;
+  }
+}

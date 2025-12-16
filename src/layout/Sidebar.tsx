@@ -37,7 +37,7 @@ const navItems: NavItem[] = [
     name: "Garments",
     path: "/admin-garment",
   },
-    {
+  {
     name: "Serivces",
     path: "/admin-service",
   },
@@ -53,14 +53,14 @@ const navItems: NavItem[] = [
     name: "Orders",
     path: "/admin-order",
   },
-  {
-    name: "SignIn",
-    path: "/signin",
-  },
-  {
-    name: "SignUp",
-    path: "/signup",
-  }
+  // {
+  //   name: "SignIn",
+  //   path: "/signin",
+  // },
+  // {
+  //   name: "SignUp",
+  //   path: "/signup",
+  // }
 ];
 
 const othersItems: NavItem[] = [

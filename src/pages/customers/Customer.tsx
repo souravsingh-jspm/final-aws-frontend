@@ -1,10 +1,5 @@
-// src/components/CustomerCrud.tsx
+import "./Customer.css";
 import React, { JSX, useEffect, useState } from "react";
-
-/**
- * Matches your Prisma Customer model:
- * customer_id, customer_name, customer_email, customer_phone, customer_addr
- */
 type Customer = {
   customer_id: string;
   customer_name: string;
@@ -17,7 +12,6 @@ type Customer = {
 
 const BASE = "http://15.206.204.80:3000/customer/customer";
 
-/* ---------- helpers for unwrapping API wrapper ---------- */
 function unwrapArray<T>(raw: any): T[] {
   if (!raw) return [];
   if (Array.isArray(raw)) return raw;
@@ -29,7 +23,6 @@ function unwrapArray<T>(raw: any): T[] {
     typeof raw.data === "object" &&
     !Array.isArray(raw.data)
   ) {
-    // sometimes POST/PUT returns single item in data
     return [raw.data];
   }
   return [];
@@ -50,7 +43,6 @@ function unwrapSingle<T>(raw: any): T | null {
   return null;
 }
 
-/* ---------- Simple Modal ---------- */
 const Modal: React.FC<{
   title?: string;
   visible: boolean;
@@ -59,15 +51,15 @@ const Modal: React.FC<{
 }> = ({ title, visible, onClose, children }) => {
   if (!visible) return null;
   return (
-    <div style={styles.modalBackdrop}>
-      <div style={styles.modal}>
-        <div style={styles.modalHeader}>
-          <strong>{title || "Modal"}</strong>
-          <button onClick={onClose} style={styles.closeBtn} aria-label="Close">
+    <div className="modal__overlay">
+      <div className="modal__content">
+        <div className="modal__header">
+          <strong>{title}</strong>
+          <button className="modal__close" onClick={onClose}>
             ×
           </button>
         </div>
-        <div style={styles.modalBody}>{children}</div>
+        {children}
       </div>
     </div>
   );
@@ -78,12 +70,10 @@ export default function CustomerCrud(): JSX.Element {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // modal / form state
   const [isModalOpen, setModalOpen] = useState(false);
   const [isSubmitting, setSubmitting] = useState(false);
   const [editing, setEditing] = useState<Customer | null>(null);
 
-  // form fields
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -92,7 +82,6 @@ export default function CustomerCrud(): JSX.Element {
 
   useEffect(() => {
     fetchList();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function fetchList() {
@@ -140,7 +129,6 @@ export default function CustomerCrud(): JSX.Element {
   function validateForm() {
     if (!name.trim()) return "Name is required.";
     if (!email.trim()) return "Email is required.";
-    // basic email regex (not exhaustive)
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) return "Invalid email address.";
     if (!phone.trim()) return "Phone is required.";
@@ -161,7 +149,6 @@ export default function CustomerCrud(): JSX.Element {
     setSubmitting(true);
     try {
       if (editing) {
-        // Update
         const res = await fetch(
           `${BASE}/${encodeURIComponent(editing.customer_id)}`,
           {
@@ -180,7 +167,6 @@ export default function CustomerCrud(): JSX.Element {
         console.debug("PUT raw:", raw);
 
         if (!res.ok) {
-          // attempt to show server message
           const msg =
             raw?.message ||
             raw?.data?.message ||
@@ -200,7 +186,6 @@ export default function CustomerCrud(): JSX.Element {
           prev.map((p) => (p.customer_id === updated.customer_id ? updated : p))
         );
       } else {
-        // Create
         const res = await fetch(BASE, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -227,13 +212,11 @@ export default function CustomerCrud(): JSX.Element {
         if (created) {
           setCustomers((prev) => [created, ...prev]);
         } else {
-          // fallback: refetch list
           await fetchList();
         }
       }
       setModalOpen(false);
     } catch (err: any) {
-      // show server error or validation error
       setValidationError(err.message || "Failed to submit");
     } finally {
       setSubmitting(false);
@@ -265,33 +248,33 @@ export default function CustomerCrud(): JSX.Element {
   }
 
   return (
-    <div style={styles.container}>
-      <header style={styles.header}>
+    <div className="customer">
+      <header className="customer__header">
         <div>
-          <h2>Customers</h2>
+          <h2 className="customer__title">Customers</h2>
+          <div>Manage serivces types</div>
         </div>
-        <div>
-          <button onClick={openCreateModal} style={styles.primaryBtn}>
-            Add Customer
-          </button>
-        </div>
+
+        <button className="customer__add-btn" onClick={openCreateModal}>
+          Add Customer
+        </button>
       </header>
 
-      {error && <div style={styles.error}>{error}</div>}
+      {error && <div className="customer__error">{error}</div>}
 
       {loading ? (
         <div>Loading...</div>
       ) : customers.length === 0 ? (
-        <div style={styles.empty}>No customers found.</div>
+        <div>No customers found.</div>
       ) : (
-        <table style={styles.table}>
+        <table className="customer__table">
           <thead>
             <tr>
-              <th style={{ textAlign: "left" }}>Name</th>
-              <th style={{ textAlign: "left" }}>Email</th>
-              <th style={{ textAlign: "left" }}>Phone</th>
-              <th style={{ textAlign: "left" }}>Address</th>
-              <th style={{ width: 180 }}>Actions</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th>Address</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -302,16 +285,16 @@ export default function CustomerCrud(): JSX.Element {
                 <td>{c.customer_phone}</td>
                 <td>{c.customer_address ?? "-"}</td>
                 <td>
-                  <div style={{ display: "flex", gap: 8 }}>
+                  <div className="customer__actions">
                     <button
+                      className="customer__action-btn customer__action-btn--edit"
                       onClick={() => openEditModal(c)}
-                      style={styles.secondaryBtn}
                     >
                       Edit
                     </button>
                     <button
+                      className="customer__action-btn customer__action-btn--delete"
                       onClick={() => handleDelete(c)}
-                      style={styles.dangerBtn}
                     >
                       Delete
                     </button>
@@ -328,72 +311,55 @@ export default function CustomerCrud(): JSX.Element {
         visible={isModalOpen}
         onClose={closeModal}
       >
-        <form onSubmit={handleSubmit} style={{ display: "grid", gap: 8 }}>
-          <label style={styles.label}>
-            Name <span style={{ color: "red" }}>*</span>
+        <form className="form" onSubmit={handleSubmit}>
+          <label className="form__field">
+            <span className="form__label">Name *</span>
             <input
+              className="form__input"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              style={styles.input}
               disabled={isSubmitting}
             />
           </label>
 
-          <label style={styles.label}>
-            Email <span style={{ color: "red" }}>*</span>
+          <label className="form__field">
+            <span className="form__label">Email *</span>
             <input
+              className="form__input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              style={styles.input}
               disabled={isSubmitting}
             />
           </label>
 
-          <label style={styles.label}>
-            Phone <span style={{ color: "red" }}>*</span>
+          <label className="form__field">
+            <span className="form__label">Phone *</span>
             <input
+              className="form__input"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              style={styles.input}
               disabled={isSubmitting}
             />
           </label>
 
-          <label style={styles.label}>
+          <label className="form__field">
             Address
             <input
+              className="form__input"
               value={addr}
               onChange={(e) => setAddr(e.target.value)}
-              style={styles.input}
               disabled={isSubmitting}
             />
           </label>
 
           {validationError && (
-            <div style={styles.validationError}>{validationError}</div>
+            <div className="form__error">{validationError}</div>
           )}
-
-          <div
-            style={{
-              display: "flex",
-              gap: 8,
-              justifyContent: "flex-end",
-              marginTop: 8,
-            }}
-          >
-            <button
-              type="button"
-              onClick={closeModal}
-              style={styles.cancelBtn}
-              disabled={isSubmitting}
-            >
+          <div className="form__actions">
+            <button type="button" onClick={closeModal} disabled={isSubmitting}>
               Cancel
             </button>
-            <button
-              type="submit"
-              style={styles.primaryBtn}
-              disabled={isSubmitting}
-            >
+            <button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Saving..." : editing ? "Update" : "Create"}
             </button>
           </div>
@@ -402,120 +368,3 @@ export default function CustomerCrud(): JSX.Element {
     </div>
   );
 }
-
-/* ---------- minimal inline styles ---------- */
-const styles: { [k: string]: React.CSSProperties } = {
-  container: {
-    maxWidth: 960,
-    margin: "24px auto",
-    padding: 16,
-    fontFamily: "Inter, Roboto, Arial, sans-serif",
-  },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  subtitle: {
-    color: "#555",
-    fontSize: 13,
-  },
-  table: {
-    width: "100%",
-    borderCollapse: "collapse",
-    boxShadow: "0 1px 0 rgba(0,0,0,0.06)",
-  },
-  empty: {
-    color: "#666",
-    padding: 24,
-  },
-  primaryBtn: {
-    background: "#0b74de",
-    color: "#fff",
-    border: 0,
-    padding: "8px 12px",
-    borderRadius: 6,
-    cursor: "pointer",
-  },
-  secondaryBtn: {
-    background: "#f3f4f6",
-    color: "#111",
-    border: "1px solid #e5e7eb",
-    padding: "6px 10px",
-    borderRadius: 6,
-    cursor: "pointer",
-  },
-  dangerBtn: {
-    background: "#ffecec",
-    color: "#b91c1c",
-    border: "1px solid #f1a1a1",
-    padding: "6px 10px",
-    borderRadius: 6,
-    cursor: "pointer",
-  },
-  cancelBtn: {
-    background: "#fff",
-    color: "#111",
-    border: "1px solid #e5e7eb",
-    padding: "8px 12px",
-    borderRadius: 6,
-    cursor: "pointer",
-  },
-  input: {
-    width: "100%",
-    padding: "8px 10px",
-    borderRadius: 6,
-    border: "1px solid #d1d5db",
-    marginTop: 6,
-    boxSizing: "border-box",
-  },
-  label: {
-    display: "block",
-    fontSize: 14,
-  },
-  validationError: {
-    color: "#b91c1c",
-    marginTop: 6,
-  },
-  error: {
-    color: "#b91c1c",
-    marginBottom: 8,
-  },
-  /* modal */
-  modalBackdrop: {
-    position: "fixed",
-    inset: 0,
-    background: "rgba(0,0,0,0.35)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 9999,
-    padding: 16,
-  },
-  modal: {
-    width: 560,
-    maxWidth: "100%",
-    background: "#fff",
-    borderRadius: 8,
-    boxShadow: "0 12px 60px rgba(0,0,0,0.12)",
-    overflow: "hidden",
-  },
-  modalHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "12px 16px",
-    borderBottom: "1px solid #eef2f6",
-  },
-  closeBtn: {
-    background: "transparent",
-    border: 0,
-    fontSize: 20,
-    cursor: "pointer",
-    lineHeight: 1,
-  },
-  modalBody: {
-    padding: 16,
-  },
-};

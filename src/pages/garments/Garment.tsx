@@ -1,7 +1,6 @@
-// src/components/Garment.tsx
 import React, { useEffect, useReducer, useState } from "react";
 import { useSWRConfig } from "swr";
-
+import "./Garment.css";
 import {
   useGetAllGarmentsService,
   // useAddGarmentService,
@@ -229,49 +228,22 @@ const Garment: React.FC = () => {
   }
 
   return (
-    <div style={{ maxWidth: 880, margin: "24px auto", padding: 16 }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 12,
-        }}
-      >
+    <div className="garments">
+      <div>
         <div>
           <h2>Garments</h2>
-          <div style={{ color: "#555", fontSize: 13 }}>
-            Manage garment types
-          </div>
+          <div>Manage garment types</div>
         </div>
       </div>
 
-      <form
-        onSubmit={editingId ? handleUpdate : handleAdd}
-        style={{
-          marginBottom: 16,
-          display: "flex",
-          gap: 8,
-          alignItems: "center",
-        }}
-      >
+      <form onSubmit={editingId ? handleUpdate : handleAdd}>
         <input
           value={garmentName}
           onChange={(e) => setGarmentName(e.target.value)}
           placeholder="Enter garment name"
-          style={{
-            padding: "8px 10px",
-            borderRadius: 6,
-            border: "1px solid #d1d5db",
-            minWidth: 300,
-          }}
           disabled={submitting}
         />
-        <button
-          type="submit"
-          style={{ padding: "8px 12px", borderRadius: 6 }}
-          disabled={submitting}
-        >
+        <button type="submit" disabled={submitting}>
           {editingId
             ? submitting
               ? "Updating..."
@@ -288,7 +260,6 @@ const Garment: React.FC = () => {
               setGarmentName("");
               dispatch({ type: "SetError", payload: null });
             }}
-            style={{ padding: "8px 12px", borderRadius: 6 }}
             disabled={submitting}
           >
             Cancel
@@ -296,39 +267,35 @@ const Garment: React.FC = () => {
         )}
       </form>
 
-      {state.error && (
-        <div style={{ color: "#b91c1c", marginBottom: 8 }}>{state.error}</div>
-      )}
+      {state.error && <div>{state.error}</div>}
 
       <div>
         {listSwr.isValidating && garments.length === 0 ? (
           <div>Loading...</div>
         ) : garments.length === 0 ? (
-          <div style={{ color: "#666" }}>No garments found.</div>
+          <div>No garments found.</div>
         ) : (
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <table>
             <thead>
               <tr>
-                <th style={{ textAlign: "left" }}>Garment</th>
-                <th style={{ width: 160 }}>Actions</th>
+                <th>Garment</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {garments.map((g) => (
                 <tr key={g.garment_id}>
-                  <td style={{ padding: "8px 6px" }}>{g.garment_name}</td>
-                  <td style={{ padding: "8px 6px" }}>
-                    <div style={{ display: "flex", gap: 8 }}>
+                  <td>{g.garment_name}</td>
+                  <td>
+                    <div>
                       <button
                         onClick={() => startEdit(g)}
-                        style={{ padding: "6px 10px", borderRadius: 6 }}
                         disabled={submitting}
                       >
                         Edit
                       </button>
                       <button
                         onClick={() => handleDelete(g.garment_id)}
-                        style={{ padding: "6px 10px", borderRadius: 6 }}
                         disabled={submitting}
                       >
                         Delete

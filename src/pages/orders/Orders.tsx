@@ -1,7 +1,5 @@
-// src/components/OrderList.tsx
 import React, { useEffect, useState, useRef, JSX } from "react";
 
-/** Types — extend to match your backend. */
 type Customer = {
   customer_id: string;
   customer_name?: string;
@@ -28,7 +26,6 @@ type OrderItem = {
   return_expected_by?: string;
   createdAt?: string;
   updatedAt?: string;
-  // optional nested expansions
   service?: Service | null;
   garment?: Garment | null;
 };
@@ -37,7 +34,7 @@ type Order = {
   order_id: string;
   customer_id: string;
   customer?: Customer | null;
-  return_expected_by?: string; // order-level date (ISO)
+  return_expected_by?: string;
   createdAt?: string;
   updatedAt?: string;
   status?: string;
@@ -45,13 +42,11 @@ type Order = {
   quantity?: number;
   customer_phone?: string;
   customer_name?: string;
-  // optional nested expansions
   items?: OrderItem[] | null;
 };
 
 const ORDER_BASE = "http://15.206.204.80:3000/order/order";
 
-/* ---------- helpers to unwrap wrapped responses ---------- */
 function unwrapArray<T>(raw: any): T[] {
   if (!raw) return [];
   if (Array.isArray(raw)) return raw;
@@ -59,21 +54,7 @@ function unwrapArray<T>(raw: any): T[] {
   if (raw && Array.isArray(raw.items)) return raw.items;
   return [];
 }
-// function unwrapSingle<T>(raw: any): T | null {
-//   if (!raw) return null;
-//   if (
-//     raw &&
-//     raw.data &&
-//     typeof raw.data === "object" &&
-//     !Array.isArray(raw.data)
-//   )
-//     return raw.data as T;
-//   if (raw && typeof raw === "object" && ("order_id" in raw || "id" in raw))
-//     return raw as T;
-//   return null;
-// }
 
-/* ---------- Modal ---------- */
 const Modal: React.FC<{
   visible: boolean;
   title?: string;
@@ -96,7 +77,6 @@ const Modal: React.FC<{
   );
 };
 
-/* ---------- Main component ---------- */
 export default function OrderList(): JSX.Element {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
@@ -110,13 +90,11 @@ export default function OrderList(): JSX.Element {
   const debounceRef = useRef<number | null>(null);
   useEffect(() => {
     fetchOrders();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // debounce search input
   useEffect(() => {
     if (debounceRef.current) window.clearTimeout(debounceRef.current);
-    // use window.setTimeout to keep proper return type for clearTimeout
     debounceRef.current = window.setTimeout(
       () => setDebouncedSearch(search.trim()),
       400
@@ -126,10 +104,8 @@ export default function OrderList(): JSX.Element {
     };
   }, [search]);
 
-  // refetch when debounced search changes
   useEffect(() => {
     fetchOrders(debouncedSearch);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch]);
 
   async function fetchOrders(searchTerm = "") {
@@ -151,7 +127,6 @@ export default function OrderList(): JSX.Element {
         return;
       }
 
-      // Fallback parsing
       if (raw && Array.isArray(raw)) {
         setOrders(raw);
       } else if (raw && raw.data && Array.isArray(raw.data)) {
@@ -166,39 +141,6 @@ export default function OrderList(): JSX.Element {
       setLoading(false);
     }
   }
-
-  // async function fetchOrderDetails(order_id: string) {
-  //   setDetailsLoading(true);
-  //   try {
-  //     const res = await fetch(`${ORDER_BASE}/${encodeURIComponent(order_id)}`, {
-  //       method: "GET",
-  //     });
-  //     const raw = await res.json().catch(() => null);
-  //     console.debug("GET order details raw:", raw);
-
-  //     const ord =
-  //       unwrapSingle<Order>(raw) || (raw && raw.data ? raw.data : null);
-  //     if (ord) {
-  //       setDetailsOrder(ord);
-  //     } else if (raw && Array.isArray(raw) && raw.length > 0) {
-  //       setDetailsOrder(raw[0]);
-  //     } else {
-  //       setDetailsOrder(null);
-  //       setError("Order details not returned by server");
-  //     }
-  //   } catch (err: any) {
-  //     setError(err?.message || "Failed to fetch order details");
-  //     setDetailsOrder(null);
-  //   } finally {
-  //     setDetailsLoading(false);
-  //   }
-  // }
-
-  // open summary immediately then fetch details to populate modal
-  // function openDetails(order: Order) {
-  //   setDetailsOrder(order); // show quick summary if available
-  //   fetchOrderDetails(order.order_id);
-  // }
 
   function closeDetails() {
     setDetailsOrder(null);
@@ -221,7 +163,6 @@ export default function OrderList(): JSX.Element {
     }
   }
 
-  // client-side filter in addition to server-side search (fallback)
   const filteredOrders = React.useMemo(() => {
     const q = debouncedSearch.toLowerCase();
     if (!q) return orders;
@@ -239,7 +180,6 @@ export default function OrderList(): JSX.Element {
     });
   }, [orders, debouncedSearch]);
 
-  // prefer order-level return_expected_by, else earliest among items
   function earliestReturnExpected(
     items?: OrderItem[] | null,
     orderLevel?: string | undefined
@@ -311,7 +251,6 @@ export default function OrderList(): JSX.Element {
             <tr>
               <th style={{ textAlign: "left" }}>Name</th>
               <th style={{ textAlign: "left" }}>Phone</th>
-              {/* <th style={{ textAlign: "left" }}>Email</th> */}
               <th style={{ textAlign: "left" }}>Quantity</th>
               <th style={{ textAlign: "left" }}>Return expected</th>
               <th style={{ textAlign: "left" }}>Priority</th>
@@ -330,13 +269,8 @@ export default function OrderList(): JSX.Element {
                 <tr key={o.order_id}>
                   <td>{o.customer_name ?? o.customer_id}</td>
                   <td>{o.customer_phone ?? "-"}</td>
-                  <td >{o.quantity}</td> 
+                  <td>{o.quantity}</td>
                   <td>{formatDate(earliest)}</td>
-                  {/* <td>{Array.isArray(o.items) ? o.items.length : "-"}</td> */}
-                  {/* <td>
-                    {o.createdAt ? new Date(o.createdAt).toLocaleString() : "-"}
-                  </td> */}
-
                   <td>{o.availability_status ?? o.customer_id}</td>
                   <td>{o.status ?? o.customer_id}</td>
                   <td>
@@ -466,7 +400,6 @@ export default function OrderList(): JSX.Element {
   );
 }
 
-/* ---------- styles ---------- */
 const styles: { [k: string]: React.CSSProperties } = {
   container: {
     maxWidth: 1000,

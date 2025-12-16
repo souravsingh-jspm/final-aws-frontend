@@ -1,4 +1,4 @@
-// src/components/ServiceCrud.tsx
+import "./Service.css";
 import React, { JSX, useEffect, useState } from "react";
 
 /**
@@ -53,15 +53,15 @@ const Modal: React.FC<{
 }> = ({ visible, title, onClose, children }) => {
   if (!visible) return null;
   return (
-    <div style={styles.modalBackdrop}>
-      <div style={styles.modal}>
-        <div style={styles.modalHeader}>
+    <div>
+      <div>
+        <div>
           <strong>{title ?? "Modal"}</strong>
-          <button onClick={onClose} style={styles.closeBtn} aria-label="Close">
+          <button onClick={onClose} aria-label="Close">
             ×
           </button>
         </div>
-        <div style={styles.modalBody}>{children}</div>
+        <div>{children}</div>
       </div>
     </div>
   );
@@ -247,34 +247,30 @@ export default function ServiceCrud(): JSX.Element {
   }
 
   return (
-    <div style={styles.container}>
-      <header style={styles.header}>
+    <div className="services">
+      <header>
         <div>
           <h2>Services</h2>
-          {/* <div style={styles.subtitle}>
-            Create and manage services and assign them to garments.
-          </div> */}
+          <div>Manage serivces types</div>
         </div>
         <div>
-          <button onClick={openCreate} style={styles.primaryBtn}>
-            Add Service
-          </button>
+          <button onClick={openCreate}>Add Service</button>
         </div>
       </header>
 
-      {error && <div style={styles.error}>{error}</div>}
+      {error && <div>{error}</div>}
 
       {loadingServices ? (
         <div>Loading services...</div>
       ) : services.length === 0 ? (
-        <div style={styles.empty}>No services found.</div>
+        <div>No services found.</div>
       ) : (
-        <table style={styles.table}>
+        <table>
           <thead>
             <tr>
-              <th style={{ textAlign: "left" }}>Name</th>
-              <th style={{ textAlign: "left" }}>Garment</th>
-              <th style={{ width: 160 }}>Actions</th>
+              <th>Name</th>
+              <th>Garment</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -289,16 +285,16 @@ export default function ServiceCrud(): JSX.Element {
                 </td>
                 {/* <td>{s.is_active ? "Yes" : "No"}</td> */}
                 <td>
-                  <div style={{ display: "flex", gap: 8 }}>
+                  <div>
                     <button
+                      className="service-edit-btn"
                       onClick={() => openEdit(s)}
-                      style={styles.secondaryBtn}
                     >
                       Edit
                     </button>
                     <button
+                      className="service-edit-btn"
                       onClick={() => handleDelete(s)}
-                      style={styles.dangerBtn}
                     >
                       Delete
                     </button>
@@ -315,27 +311,27 @@ export default function ServiceCrud(): JSX.Element {
         title={editing ? "Edit Service" : "Add Service"}
         onClose={closeModal}
       >
-        <form onSubmit={submitForm} style={{ display: "grid", gap: 8 }}>
-          <label style={styles.label}>
-            Name <span style={{ color: "red" }}>*</span>
+        <form className="service-form" onSubmit={submitForm}>
+          <label>
+            Name <span className="service-danger">*</span>
+          </label>
+          <div className="form-input-service">
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              style={styles.input}
               disabled={submitting}
             />
-          </label>
-
-          <label style={styles.label}>
-            Garment <span style={{ color: "red" }}>*</span>
+          </div>
+          <label>
+            Garment <span className="service-danger">*</span>
             <div>
               {loadingGarments ? (
                 <div>Loading garments...</div>
               ) : (
                 <select
                   value={garmentId}
+                  className="form-select-garment"
                   onChange={(e) => setGarmentId(e.target.value)}
-                  style={styles.select}
                   disabled={submitting}
                 >
                   <option value="">select garment</option>
@@ -348,58 +344,12 @@ export default function ServiceCrud(): JSX.Element {
               )}
             </div>
           </label>
-
-          {/* <label style={styles.label}>
-            Active
-            <div>
-              <label style={{ marginRight: 12 }}>
-                <input
-                  type="radio"
-                  name="active"
-                  checked={isActive === true}
-                  onChange={() => setIsActive(true)}
-                  disabled={submitting}
-                />{" "}
-                Yes
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name="active"
-                  checked={isActive === false}
-                  onChange={() => setIsActive(false)}
-                  disabled={submitting}
-                />{" "}
-                No
-              </label>
-            </div>
-          </label> */}
-
-          {validationError && (
-            <div style={styles.validationError}>{validationError}</div>
-          )}
-
-          <div
-            style={{
-              display: "flex",
-              gap: 8,
-              justifyContent: "flex-end",
-              marginTop: 8,
-            }}
-          >
-            <button
-              type="button"
-              onClick={closeModal}
-              style={styles.cancelBtn}
-              disabled={submitting}
-            >
+          {validationError && <div>{validationError}</div>}
+          <div>
+            <button type="button" onClick={closeModal} disabled={submitting}>
               Cancel
             </button>
-            <button
-              type="submit"
-              style={styles.primaryBtn}
-              disabled={submitting}
-            >
+            <button type="submit" disabled={submitting}>
               {submitting ? "Saving..." : editing ? "Update" : "Create"}
             </button>
           </div>
@@ -408,111 +358,3 @@ export default function ServiceCrud(): JSX.Element {
     </div>
   );
 }
-
-/* ---------- styles ---------- */
-const styles: { [k: string]: React.CSSProperties } = {
-  container: {
-    maxWidth: 980,
-    margin: "24px auto",
-    padding: 16,
-    fontFamily: "Inter, Roboto, Arial, sans-serif",
-  },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  subtitle: { color: "#555", fontSize: 13 },
-  table: {
-    width: "100%",
-    borderCollapse: "collapse",
-    boxShadow: "0 1px 0 rgba(0,0,0,0.06)",
-  },
-  empty: { color: "#666", padding: 24 },
-  primaryBtn: {
-    background: "#0b74de",
-    color: "#fff",
-    border: 0,
-    padding: "8px 12px",
-    borderRadius: 6,
-    cursor: "pointer",
-  },
-  secondaryBtn: {
-    background: "#f3f4f6",
-    color: "#111",
-    border: "1px solid #e5e7eb",
-    padding: "6px 10px",
-    borderRadius: 6,
-    cursor: "pointer",
-  },
-  dangerBtn: {
-    background: "#ffecec",
-    color: "#b91c1c",
-    border: "1px solid #f1a1a1",
-    padding: "6px 10px",
-    borderRadius: 6,
-    cursor: "pointer",
-  },
-  cancelBtn: {
-    background: "#fff",
-    color: "#111",
-    border: "1px solid #e5e7eb",
-    padding: "8px 12px",
-    borderRadius: 6,
-    cursor: "pointer",
-  },
-  input: {
-    width: "100%",
-    padding: "8px 10px",
-    borderRadius: 6,
-    border: "1px solid #d1d5db",
-    marginTop: 6,
-    boxSizing: "border-box",
-  },
-  select: {
-    width: "100%",
-    padding: "8px 10px",
-    borderRadius: 6,
-    border: "1px solid #d1d5db",
-    marginTop: 6,
-    boxSizing: "border-box",
-  },
-  label: { display: "block", fontSize: 14 },
-  validationError: { color: "#b91c1c", marginTop: 6 },
-  error: { color: "#b91c1c", marginBottom: 8 },
-  /* modal */
-  modalBackdrop: {
-    position: "fixed",
-    inset: 0,
-    background: "rgba(0,0,0,0.35)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 9999,
-    padding: 16,
-  },
-  modal: {
-    width: 600,
-    maxWidth: "100%",
-    background: "#fff",
-    borderRadius: 8,
-    boxShadow: "0 12px 60px rgba(0,0,0,0.12)",
-    overflow: "hidden",
-  },
-  modalHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "12px 16px",
-    borderBottom: "1px solid #eef2f6",
-  },
-  closeBtn: {
-    background: "transparent",
-    border: 0,
-    fontSize: 20,
-    cursor: "pointer",
-    lineHeight: 1,
-  },
-  modalBody: { padding: 16 },
-};
