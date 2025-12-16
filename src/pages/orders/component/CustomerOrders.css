@@ -1,0 +1,175 @@
+/* =====================================================
+   ROOT
+   ===================================================== */
+
+.customer-orders {
+  padding: 16px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #111827;
+  background-color: #ffffff;
+}
+
+/* =====================================================
+   HEADER
+   ===================================================== */
+
+.customer-orders__title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.customer-orders__subtitle {
+  margin-top: 4px;
+  margin-bottom: 12px;
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* =====================================================
+   BACK BUTTON
+   ===================================================== */
+
+.customer-orders__back-btn {
+  height: 40px;
+  padding: 0 14px;
+  font-size: 14px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background-color: #f9fafb;
+  color: #111827;
+  cursor: pointer;
+  margin-bottom: 20px;
+}
+
+/* =====================================================
+   STATES
+   ===================================================== */
+
+.customer-orders__loading {
+  font-size: 14px;
+  color: #374151;
+}
+
+.customer-orders__error {
+  color: #dc2626;
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.customer-orders__empty {
+  padding: 24px;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+/* =====================================================
+   TABLE – MOBILE CARD VIEW
+   ===================================================== */
+
+.customer-orders__table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* Hide header on mobile */
+.customer-orders__table thead {
+  display: none;
+}
+
+/* Card rows */
+.customer-orders__table tbody tr {
+  display: block;
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.customer-orders__table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.customer-orders__table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+.customer-orders__table td {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 14px;
+}
+
+/* Mobile labels */
+.customer-orders__table td:nth-child(1)::before {
+  content: "Name";
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.customer-orders__table td:nth-child(2)::before {
+  content: "Return Expected";
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.customer-orders__table td:nth-child(3)::before {
+  content: "Availability";
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.customer-orders__table td:nth-child(4)::before {
+  content: "Status";
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.customer-orders__table td:nth-child(5)::before {
+  content: "Created";
+  color: #6b7280;
+  font-size: 12px;
+}
+
+/* =====================================================
+   DESKTOP (≥768px)
+   ===================================================== */
+
+@media (min-width: 768px) {
+  .customer-orders {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  /* Restore table */
+  .customer-orders__table thead {
+    display: table-header-group;
+  }
+
+  .customer-orders__table tbody tr {
+    display: table-row;
+    padding: 0;
+  }
+
+  .customer-orders__table td {
+    display: table-cell;
+    padding: 14px 16px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .customer-orders__table td::before {
+    display: none;
+  }
+
+  .customer-orders__table th {
+    padding: 14px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    text-align: left;
+    background-color: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+  }
+}

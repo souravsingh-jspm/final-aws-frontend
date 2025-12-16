@@ -1,3 +1,4 @@
+import "./CustomerOrders.css";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 
@@ -46,39 +47,29 @@ export default function CustomerOrders() {
   }
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>Customer Orders</h2>
-      <p>
+    <div className="customer-orders">
+      <h2 className="customer-orders__title">Customer Orders</h2>
+      <p className="customer-orders__subtitle">
         Showing all orders for <strong>{customer_id}</strong>
       </p>
 
       <button
+        className="customer-orders__back-btn"
         onClick={() => (window.location.href = "/orders")}
-        style={{
-          padding: "6px 10px",
-          borderRadius: 6,
-          border: "1px solid #999",
-          marginBottom: 20,
-        }}
       >
         Back to Orders
       </button>
 
-      {loading && <div>Loading...</div>}
-      {error && <div style={{ color: "red" }}>{error}</div>}
-
+      {loading && <div className="customer-orders__loading">Loading...</div>}
+      {error && <div className="customer-orders__error">{error}</div>}
       {!loading && orders.length === 0 && (
-        <div>No orders found for this customer.</div>
+        <div className="customer-orders__empty">
+          No orders found for this customer.
+        </div>
       )}
 
       {orders.length > 0 && (
-        <table
-          style={{
-            width: "100%",
-            borderCollapse: "collapse",
-            marginTop: 10,
-          }}
-        >
+        <table className="customer-orders__table">
           <thead>
             <tr>
               <th>Name</th>

@@ -1,3 +1,4 @@
+import "./Orders.css";
 import React, { useEffect, useState, useRef, JSX } from "react";
 
 type Customer = {
@@ -63,15 +64,15 @@ const Modal: React.FC<{
 }> = ({ visible, title, onClose, children }) => {
   if (!visible) return null;
   return (
-    <div style={styles.modalBackdrop} role="dialog" aria-modal="true">
-      <div style={styles.modal}>
-        <div style={styles.modalHeader}>
+    <div className="modal__overlay" role="dialog" aria-modal="true">
+      <div className="modal__content">
+        <div className="modal__header">
           <strong>{title}</strong>
-          <button onClick={onClose} style={styles.closeBtn} aria-label="Close">
+          <button className="modal__close" onClick={onClose} aria-label="Close">
             ×
           </button>
         </div>
-        <div style={styles.modalBody}>{children}</div>
+        <div className="modal__body">{children}</div>
       </div>
     </div>
   );
@@ -206,56 +207,54 @@ export default function OrderList(): JSX.Element {
   }
 
   return (
-    <div style={styles.container}>
-      <header style={styles.header}>
+    <div className="orders">
+      <header className="orders__header">
         <div>
-          <h2>Orders</h2>
-          <div style={styles.subtitle}>List of created orders</div>
+          <h2 className="orders__title">Orders</h2>
+          <div className="orders__subtitle">List of created orders</div>
         </div>
 
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        <div className="orders__search">
           <input
+            className="orders__search-input"
             placeholder="Search by customer ..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={styles.searchInput}
           />
           <button
+            className="orders__btn orders__btn--primary"
             onClick={() => fetchOrders(debouncedSearch)}
-            style={styles.primaryBtn}
           >
             Search
           </button>
           <button
+            className="orders__btn orders__btn--secondary"
             onClick={() => {
               setSearch("");
               setDebouncedSearch("");
               fetchOrders();
             }}
-            style={styles.secondaryBtn}
           >
             Clear
           </button>
         </div>
       </header>
-
-      {error && <div style={styles.error}>{error}</div>}
-
+      {error && <div className="orders__error">{error}</div>}
       {loading ? (
         <div>Loading orders...</div>
       ) : filteredOrders.length === 0 ? (
-        <div style={styles.empty}>No orders found.</div>
+        <div className="orders__empty">No orders found.</div>
       ) : (
-        <table style={styles.table}>
+        <table className="orders__table">
           <thead>
             <tr>
-              <th style={{ textAlign: "left" }}>Name</th>
-              <th style={{ textAlign: "left" }}>Phone</th>
-              <th style={{ textAlign: "left" }}>Quantity</th>
-              <th style={{ textAlign: "left" }}>Return expected</th>
-              <th style={{ textAlign: "left" }}>Priority</th>
-              <th style={{ textAlign: "left" }}>Status</th>
-              <th style={{ width: 180 }}>Actions</th>
+              <th>Name</th>
+              <th>Phone</th>
+              <th>Quantity</th>
+              <th>Return expected</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Actions</th>
             </tr>
           </thead>
 
@@ -274,18 +273,18 @@ export default function OrderList(): JSX.Element {
                   <td>{o.availability_status ?? o.customer_id}</td>
                   <td>{o.status ?? o.customer_id}</td>
                   <td>
-                    <div style={{ display: "flex", gap: 8 }}>
+                    <div className="orders__actions">
                       <button
+                        className="orders__btn orders__btn--secondary"
                         onClick={() => {
                           window.location.href = `/customer-orders/${o.customer_id}`;
                         }}
-                        style={styles.secondaryBtn}
                       >
                         View
                       </button>
                       <button
+                        className="orders__btn orders__btn--danger"
                         onClick={() => handleDelete(o.order_id)}
-                        style={styles.dangerBtn}
                       >
                         Delete
                       </button>
@@ -297,7 +296,6 @@ export default function OrderList(): JSX.Element {
           </tbody>
         </table>
       )}
-
       <Modal
         visible={!!detailsOrder}
         title="Order details"
@@ -307,29 +305,26 @@ export default function OrderList(): JSX.Element {
           <div>Loading details...</div>
         ) : detailsOrder ? (
           <div>
-            <div style={{ marginBottom: 8 }}>
-              <strong>Order:</strong>{" "}
-              <span style={{ fontFamily: "monospace" }}>
-                {detailsOrder.order_id}
-              </span>
+            <div>
+              <strong>Order:</strong> <span>{detailsOrder.order_id}</span>
             </div>
 
-            <div style={{ marginBottom: 6 }}>
+            <div>
               <strong>Customer:</strong>{" "}
               {detailsOrder.customer?.customer_name ?? detailsOrder.customer_id}
             </div>
 
-            <div style={{ marginBottom: 6 }}>
+            <div>
               <strong>Phone:</strong>{" "}
               {detailsOrder.customer?.customer_phone ?? "-"}
             </div>
 
-            <div style={{ marginBottom: 6 }}>
+            <div>
               <strong>Email:</strong>{" "}
               {detailsOrder.customer?.customer_email ?? "-"}
             </div>
 
-            <div style={{ marginBottom: 8 }}>
+            <div>
               <strong>Order return expected:</strong>{" "}
               {formatDate(
                 detailsOrder.return_expected_by ??
@@ -337,7 +332,7 @@ export default function OrderList(): JSX.Element {
               )}
             </div>
 
-            <div style={{ marginBottom: 8 }}>
+            <div>
               <strong>Created:</strong>{" "}
               {detailsOrder.createdAt
                 ? new Date(detailsOrder.createdAt).toLocaleString()
@@ -346,21 +341,19 @@ export default function OrderList(): JSX.Element {
 
             <hr />
 
-            <h4 style={{ marginTop: 12 }}>Items / Services</h4>
+            <h4>Items / Services</h4>
             {!detailsOrder.items || detailsOrder.items.length === 0 ? (
-              <div style={{ color: "#666", padding: 8 }}>
-                No items found for this order.
-              </div>
+              <div>No items found for this order.</div>
             ) : (
-              <table style={styles.innerTable}>
+              <table>
                 <thead>
                   <tr>
-                    <th style={{ textAlign: "left" }}>Garment</th>
-                    <th style={{ textAlign: "left" }}>Service</th>
-                    <th style={{ textAlign: "left" }}>Quantity</th>
-                    <th style={{ textAlign: "left" }}>Availability</th>
-                    <th style={{ textAlign: "left" }}>Return expected</th>
-                    <th style={{ textAlign: "left" }}>Created</th>
+                    <th>Garment</th>
+                    <th>Service</th>
+                    <th>Quantity</th>
+                    <th>Availability</th>
+                    <th>Return expected</th>
+                    <th>Created</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -393,98 +386,9 @@ export default function OrderList(): JSX.Element {
             )}
           </div>
         ) : (
-          <div style={{ color: "#666" }}>No details available.</div>
+          <div>No details available.</div>
         )}
       </Modal>
     </div>
   );
 }
-
-const styles: { [k: string]: React.CSSProperties } = {
-  container: {
-    maxWidth: 1000,
-    margin: "18px auto",
-    padding: 16,
-    fontFamily: "Inter, Roboto, Arial, sans-serif",
-  },
-  header: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 12,
-    gap: 12,
-  },
-  subtitle: { color: "#555", fontSize: 13 },
-  searchInput: {
-    padding: "8px 10px",
-    borderRadius: 6,
-    border: "1px solid #d1d5db",
-    minWidth: 280,
-  },
-  table: {
-    width: "100%",
-    borderCollapse: "collapse",
-    boxShadow: "0 1px 0 rgba(0,0,0,0.06)",
-  },
-  innerTable: { width: "100%", borderCollapse: "collapse", marginTop: 8 },
-  empty: { color: "#666", padding: 24 },
-  primaryBtn: {
-    background: "#0b74de",
-    color: "#fff",
-    border: 0,
-    padding: "8px 12px",
-    borderRadius: 6,
-    cursor: "pointer",
-  },
-  secondaryBtn: {
-    background: "#f3f4f6",
-    color: "#111",
-    border: "1px solid #e5e7eb",
-    padding: "6px 10px",
-    borderRadius: 6,
-    cursor: "pointer",
-  },
-  dangerBtn: {
-    background: "#ffecec",
-    color: "#b91c1c",
-    border: "1px solid #f1a1a1",
-    padding: "6px 10px",
-    borderRadius: 6,
-    cursor: "pointer",
-  },
-  error: { color: "#b91c1c", marginBottom: 8 },
-  modalBackdrop: {
-    position: "fixed",
-    inset: 0,
-    background: "rgba(0,0,0,0.35)",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    zIndex: 9999,
-    padding: 16,
-  },
-  modal: {
-    width: 820,
-    maxWidth: "100%",
-    background: "#fff",
-    borderRadius: 8,
-    boxShadow: "0 12px 60px rgba(0,0,0,0.12)",
-    overflow: "hidden",
-  },
-  modalHeader: {
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "12px 16px",
-    borderBottom: "1px solid #eef2f6",
-  },
-  closeBtn: {
-    background: "transparent",
-    border: 0,
-    fontSize: 20,
-    cursor: "pointer",
-    lineHeight: 1,
-  },
-  modalBody: { padding: 16 },
-  errorText: { color: "#b91c1c" },
-};

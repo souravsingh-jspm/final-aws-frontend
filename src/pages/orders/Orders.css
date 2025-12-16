@@ -1,0 +1,233 @@
+/* ================= ROOT ================= */
+
+.orders {
+  padding: 16px;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #111827;
+  background: #ffffff;
+}
+
+/* ================= HEADER ================= */
+
+.orders__header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.orders__title {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.orders__subtitle {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* ================= SEARCH ================= */
+
+.orders__search {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.orders__search-input {
+  flex: 1;
+  min-width: 200px;
+  height: 40px;
+  padding: 0 10px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+}
+
+/* ================= BUTTONS ================= */
+
+.orders__btn {
+  height: 40px;
+  padding: 0 14px;
+  font-size: 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+}
+
+.orders__btn--primary {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.orders__btn--secondary {
+  background: #f3f4f6;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+}
+
+.orders__btn--danger {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+
+/* ================= ERROR / EMPTY ================= */
+
+.orders__error {
+  color: #b91c1c;
+  margin-bottom: 12px;
+}
+
+.orders__empty {
+  padding: 24px;
+  color: #6b7280;
+}
+
+/* ================= TABLE (MOBILE CARD VIEW) ================= */
+
+.orders__table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.orders__table thead {
+  display: none;
+}
+
+.orders__table tbody tr {
+  display: block;
+  padding: 12px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.orders__table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.orders__table td {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 14px;
+}
+
+/* Mobile labels */
+.orders__table td:nth-child(1)::before {
+  content: "Name";
+  color: #6b7280;
+}
+.orders__table td:nth-child(2)::before {
+  content: "Phone";
+  color: #6b7280;
+}
+.orders__table td:nth-child(3)::before {
+  content: "Quantity";
+  color: #6b7280;
+}
+.orders__table td:nth-child(4)::before {
+  content: "Return";
+  color: #6b7280;
+}
+.orders__table td:nth-child(5)::before {
+  content: "Priority";
+  color: #6b7280;
+}
+.orders__table td:nth-child(6)::before {
+  content: "Status";
+  color: #6b7280;
+}
+.orders__table td:nth-child(7)::before {
+  content: "Actions";
+  color: #6b7280;
+}
+
+/* ================= ACTIONS ================= */
+
+.orders__actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* ================= MODAL ================= */
+
+.modal__overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 1000;
+}
+
+.modal__content {
+  width: 100%;
+  max-width: 900px;
+  background: #ffffff;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.modal__header {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.modal__close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.modal__body {
+  padding: 16px;
+}
+
+/* ================= DESKTOP ================= */
+
+@media (min-width: 768px) {
+  .orders {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  .orders__header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .orders__table thead {
+    display: table-header-group;
+  }
+
+  .orders__table tbody tr {
+    display: table-row;
+    padding: 0;
+  }
+
+  .orders__table td {
+    display: table-cell;
+    padding: 14px 16px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .orders__table td::before {
+    display: none;
+  }
+
+  .orders__table th {
+    padding: 14px 16px;
+    background: #f9fafb;
+    font-size: 13px;
+    text-align: left;
+  }
+}
