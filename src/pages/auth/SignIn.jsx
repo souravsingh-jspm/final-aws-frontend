@@ -1,15 +1,16 @@
-import "./auth.css"
+import "./auth.css";
 import { useState } from "react";
 
-const BASE_URL = "http://15.206.204.80:3000/users/users";
+const BASE_URL = "http://13.49.222.163:3000/users/users";
 
-const  Login = ()  =>{
+const Login = () => {
   const [credentials, setCredentials] = useState({
     user_email: "",
     user_password: "",
   });
 
-  const handleChange = (e) => {``
+  const handleChange = (e) => {
+    ``;
     setCredentials({
       ...credentials,
       [e.target.name]: e.target.value,
@@ -54,7 +55,6 @@ const  Login = ()  =>{
       <button type="submit">Login</button>
     </form>
   );
-}
+};
 
-
-export default Login
+export default Login;

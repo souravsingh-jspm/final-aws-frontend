@@ -12,11 +12,11 @@ type ItemRow = {
   quantity?: number;
 };
 
-const CUSTOMER_BASE = "http://15.206.204.80:3000/customer/customer";
-const GARMENT_BASE = "http://15.206.204.80:3000/garment/garment";
-const SERVICE_BASE = "http://15.206.204.80:3000/service/service";
-const ORDER_BASE = "http://15.206.204.80:3000/order/order";
-const ORDER_ITEM_BASE = "http://15.206.204.80:3000/order-item/order-item";
+const CUSTOMER_BASE = "http://13.49.222.163:3000/customer/customer";
+const GARMENT_BASE = "http://13.49.222.163:3000/garment/garment";
+const SERVICE_BASE = "http://13.49.222.163:3000/service/service";
+const ORDER_BASE = "http://13.49.222.163:3000/order/order";
+const ORDER_ITEM_BASE = "http://13.49.222.163:3000/order-item/order-item";
 
 function uid(prefix = "") {
   return prefix + Math.random().toString(36).slice(2, 9);

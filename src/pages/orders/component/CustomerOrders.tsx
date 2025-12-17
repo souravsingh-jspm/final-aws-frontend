@@ -30,7 +30,7 @@ export default function CustomerOrders() {
 
     try {
       const res = await fetch(
-        `http://15.206.204.80:3000/order/order/customer/${customer_id}`
+        `http://13.49.222.163:3000/order/order/customer/${customer_id}`
       );
       const data = await res.json();
       setOrders(Array.isArray(data) ? data : data.data || []);
