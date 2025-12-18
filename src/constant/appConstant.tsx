@@ -1,1 +1,1 @@
-export const API_URL = "http://13.49.222.163:3000/";
+export const API_URL = "https://api.shivaliwashingcompany.in/";

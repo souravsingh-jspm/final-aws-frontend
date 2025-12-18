@@ -10,7 +10,7 @@ type Customer = {
   customer_updatedAt?: string;
 };
 
-const BASE = "http://13.49.222.163:3000/customer/customer";
+const BASE = "https://api.shivaliwashingcompany.in/customer/customer";
 
 function unwrapArray<T>(raw: any): T[] {
   if (!raw) return [];

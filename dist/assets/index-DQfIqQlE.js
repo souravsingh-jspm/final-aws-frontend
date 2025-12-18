@@ -14862,8 +14862,8 @@ const B1 = () => h.jsx("h1", { children: "Home page" }),
     });
   },
   V1 = () => h.jsx(L1, { children: h.jsx(G1, {}) }),
-  X1 = "http://13.49.222.163:3000/garment/garment",
-  ir = "http://13.49.222.163:3000/service/service";
+  X1 = "https://api.shivaliwashingcompany.in/garment/garment",
+  ir = "https://api.shivaliwashingcompany.in/service/service";
 function Ih(l) {
   return l
     ? Array.isArray(l)
@@ -16051,7 +16051,7 @@ const nc =
     };
   },
   ap = vb(xb),
-  Eb = "http://13.49.222.163:3000/";
+  Eb = "https://api.shivaliwashingcompany.in/";
 function lp(l, u) {
   return function () {
     return l.apply(u, arguments);
@@ -18830,7 +18830,7 @@ const Sx = () => {
       ],
     });
   },
-  or = "http://13.49.222.163:3000/customer/customer";
+  or = "https://api.shivaliwashingcompany.in/customer/customer";
 function xx(l) {
   return l
     ? Array.isArray(l)
@@ -19284,7 +19284,7 @@ const Vt = {
     },
     modalBody: { padding: 16 },
   },
-  Oy = "http://13.49.222.163:3000/order/order";
+  Oy = "https://api.shivaliwashingcompany.in/order/order";
 function Tx(l) {
   return l
     ? Array.isArray(l)
@@ -19351,7 +19351,7 @@ function jy() {
     o(!0), d(null);
     try {
       const K = G
-          ? `http://13.49.222.163:3000/customer/customer-search?search=${encodeURIComponent(
+          ? `https://api.shivaliwashingcompany.in/customer/customer-search?search=${encodeURIComponent(
               G
             )}`
           : Oy,
@@ -20032,11 +20032,11 @@ function jx({
     ],
   });
 }
-const Cx = "http://13.49.222.163:3000/customer/customer",
-  wx = "http://13.49.222.163:3000/garment/garment",
-  Dx = "http://13.49.222.163:3000/service/service",
-  zx = "http://13.49.222.163:3000/order/order",
-  Nx = "http://13.49.222.163:3000/order-item/order-item";
+const Cx = "https://api.shivaliwashingcompany.in/customer/customer",
+  wx = "https://api.shivaliwashingcompany.in/garment/garment",
+  Dx = "https://api.shivaliwashingcompany.in/service/service",
+  zx = "https://api.shivaliwashingcompany.in/order/order",
+  Nx = "https://api.shivaliwashingcompany.in/order-item/order-item";
 function cr(l = "") {
   return l + Math.random().toString(36).slice(2, 9);
 }
@@ -20508,7 +20508,9 @@ function Bx() {
       c(!0), m(null);
       try {
         const b = await (
-          await fetch(`http://13.49.222.163:3000/order/order/customer/${l}`)
+          await fetch(
+            `https://api.shivaliwashingcompany.in/order/order/customer/${l}`
+          )
         ).json();
         s(Array.isArray(b) ? b : b.data || []);
       } catch (y) {

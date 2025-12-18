@@ -18,8 +18,8 @@ type Service = {
   garment?: Garment | null;
 };
 
-const GARMENT_BASE = "http://13.49.222.163:3000/garment/garment";
-const SERVICE_BASE = "http://13.49.222.163:3000/service/service";
+const GARMENT_BASE = "https://api.shivaliwashingcompany.in/garment/garment";
+const SERVICE_BASE = "https://api.shivaliwashingcompany.in/service/service";
 
 /* ---------- helpers to handle wrapped API responses ---------- */
 function unwrapArray<T>(raw: any): T[] {

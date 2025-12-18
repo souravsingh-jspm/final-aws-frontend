@@ -1,7 +1,7 @@
 import "./auth.css";
 import { useState } from "react";
 
-const BASE_URL = "http://13.49.222.163:3000/users/users";
+const BASE_URL = "https://api.shivaliwashingcompany.in/users/users";
 
 const Login = () => {
   const [credentials, setCredentials] = useState({
