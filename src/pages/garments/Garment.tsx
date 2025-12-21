@@ -120,7 +120,7 @@ const Garment: React.FC = () => {
     );
 
     try {
-      const res = await createMut.trigger({ body: { garment_name: nameTrim } });
+      await createMut.trigger({ body: { garment_name: nameTrim } });
       await mutate(SWR_KEY);
       setGarmentName("");
       setEditingId(null);
