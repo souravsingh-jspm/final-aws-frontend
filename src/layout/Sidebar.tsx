@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
+import logoImg from "../assets/shivali.jpg";
 
 import { useSidebar } from "../context/SidebarContext";
 
@@ -302,26 +303,21 @@ const AppSidebar: React.FC = () => {
             <>
               <img
                 className="dark:hidden"
-                src="/images/logo/logo.svg"
+                src={logoImg}
                 alt="Logo"
-                width={150}
+                width={40}
                 height={40}
               />
               <img
                 className="hidden dark:block"
-                src="/images/logo/logo-dark.svg"
+                src={logoImg}
                 alt="Logo"
                 width={150}
                 height={40}
               />
             </>
           ) : (
-            <img
-              src="/images/logo/logo-icon.svg"
-              alt="Logo"
-              width={32}
-              height={32}
-            />
+            <img src={logoImg} alt="Logo" width={32} height={32} />
           )}
         </Link>
       </div>

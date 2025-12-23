@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { Link } from "react-router";
 import { useSidebar } from "../context/SidebarContext";
-// import { ThemeToggleButton } from "../context/ThemeContext";
-
+import logoImg from "../assets/shivali.jpg";
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
 
@@ -84,12 +83,16 @@ const AppHeader: React.FC = () => {
           <Link to="/" className="lg:hidden">
             <img
               className="dark:hidden"
-              src="./images/logo/logo.svg"
+              height={32}
+              width={32}
+              src={logoImg}
               alt="Logo"
             />
             <img
               className="hidden dark:block"
-              src="./images/logo/logo-dark.svg"
+              height={20}
+              width={20}
+              src={logoImg}
               alt="Logo"
             />
           </Link>
