@@ -6,34 +6,11 @@ import { useSidebar } from "../context/SidebarContext";
 
 type NavItem = {
   name: string;
-  //   icon: React.ReactNode;
   path?: string;
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
 };
 
 const navItems: NavItem[] = [
-  // {
-  //   // icon: <GridIcon />,
-  //   name: "Dashboard",
-  //   subItems: [{ name: "Ecommerce", path: "/", pro: false }],
-  // },
-  // {
-  //   name: "Home",
-  //   // icon: <PageIcon />,
-  //   subItems: [
-  //     { name: "Home master", path: "/admin-homemaster", pro: false },
-  //     { name: "Slider", path: "/admin-slider", pro: false },
-  //     { name: "Testimonials", path: "/admin-testimonials", pro: false },
-  //   ],
-  // },
-  // {
-  //   name: "News & Events",
-  //   subItems: [
-  //     { name: "News", path: "/admin-news", pro: false },
-  //     { name: "Events", path: "/admin-events", pro: false },
-  //   ],
-  // },
-
   {
     name: "Garments",
     path: "/admin-garment",
@@ -54,14 +31,6 @@ const navItems: NavItem[] = [
     name: "Orders",
     path: "/admin-order",
   },
-  // {
-  //   name: "SignIn",
-  //   path: "/signin",
-  // },
-  // {
-  //   name: "SignUp",
-  //   path: "/signup",
-  // }
 ];
 
 const othersItems: NavItem[] = [
@@ -78,7 +47,6 @@ const othersItems: NavItem[] = [
     ],
   },
   {
-    // icon: <PlugInIcon />,
     name: "Authentication",
     subItems: [
       { name: "Sign In", path: "/signin", pro: false },

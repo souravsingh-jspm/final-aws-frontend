@@ -1,49 +1,16 @@
 import "./Customer.css";
-import { BASE_URL } from "../../constant/appConstant";
-import React, { JSX, useEffect, useState } from "react";
-type Customer = {
-  customer_id: string;
-  customer_name: string;
-  customer_email: string;
-  customer_phone: string;
-  customer_address?: string | null;
-  customer_createdAt?: string;
-  customer_updatedAt?: string;
-};
+import React, { useEffect, useState } from "react";
+import {
+  useGetAllCustomers,
+  useCreateCustomer,
+  useUpdateCustomer,
+  useDeleteCustomer,
+  Customer,
+} from "@/services/Customer";
 
-function unwrapArray<T>(raw: any): T[] {
-  if (!raw) return [];
-  if (Array.isArray(raw)) return raw;
-  if (raw && Array.isArray(raw.data)) return raw.data;
-  if (raw && Array.isArray(raw.customers)) return raw.customers;
-  if (
-    raw &&
-    raw.data &&
-    typeof raw.data === "object" &&
-    !Array.isArray(raw.data)
-  ) {
-    return [raw.data];
-  }
-  return [];
-}
-
-function unwrapSingle<T>(raw: any): T | null {
-  if (!raw) return null;
-  if (
-    raw &&
-    raw.data &&
-    typeof raw.data === "object" &&
-    !Array.isArray(raw.data)
-  )
-    return raw.data as T;
-  if (Array.isArray(raw) && raw.length > 0) return raw[0] as T;
-  if (raw && typeof raw === "object" && ("customer_id" in raw || "id" in raw))
-    return raw as T;
-  return null;
-}
-
+/* ---------- Modal ---------- */
 const Modal: React.FC<{
-  title?: string;
+  title: string;
   visible: boolean;
   onClose: () => void;
   children: React.ReactNode;
@@ -64,211 +31,92 @@ const Modal: React.FC<{
   );
 };
 
-export default function CustomerCrud(): JSX.Element {
-  const [customers, setCustomers] = useState<Customer[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+const CustomerCrud: React.FC = () => {
+  const { data, isLoading } = useGetAllCustomers();
+  const createMut = useCreateCustomer();
+  const updateMut = useUpdateCustomer();
+  const deleteMut = useDeleteCustomer();
 
-  const [isModalOpen, setModalOpen] = useState(false);
-  const [isSubmitting, setSubmitting] = useState(false);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Customer | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [addr, setAddr] = useState("");
-  const [validationError, setValidationError] = useState<string | null>(null);
+  const [address, setAddress] = useState("");
 
+  /* ---------- Sync list ---------- */
   useEffect(() => {
-    fetchList();
-  }, []);
+    if (data?.data) setCustomers(data.data);
+  }, [data]);
 
-  async function fetchList() {
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch(`${BASE_URL}customer/customer`, {
-        method: "GET",
-      });
-      const raw = await res.json().catch(() => null);
-      console.debug("GET raw:", raw);
-      const list = unwrapArray<Customer>(raw);
-      setCustomers(list);
-    } catch (err: any) {
-      setError(err.message || "Failed to fetch customers");
-      setCustomers([]);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function openCreateModal() {
+  /* ---------- Modal helpers ---------- */
+  const openCreate = () => {
     setEditing(null);
     setName("");
     setEmail("");
     setPhone("");
-    setAddr("");
-    setValidationError(null);
+    setAddress("");
     setModalOpen(true);
-  }
+  };
 
-  function openEditModal(c: Customer) {
+  const openEdit = (c: Customer) => {
     setEditing(c);
-    setName(c.customer_name ?? "");
-    setEmail(c.customer_email ?? "");
-    setPhone(c.customer_phone ?? "");
-    setAddr(c.customer_address ?? "");
-    setValidationError(null);
+    setName(c.customer_name);
+    setEmail(c.customer_email);
+    setPhone(c.customer_phone);
+    setAddress(c.customer_address ?? "");
     setModalOpen(true);
-  }
+  };
 
-  function closeModal() {
-    if (isSubmitting) return;
-    setModalOpen(false);
-  }
-
-  function validateForm() {
-    if (!name.trim()) return "Name is required.";
-    if (!email.trim()) return "Email is required.";
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email.trim())) return "Invalid email address.";
-    if (!phone.trim()) return "Phone is required.";
-    if (phone.length > 50) return "Phone is too long.";
-    if (addr && addr.length > 300) return "Address is too long.";
-    return null;
-  }
-
-  async function handleSubmit(e?: React.FormEvent) {
-    if (e) e.preventDefault();
-    setValidationError(null);
-    const v = validateForm();
-    if (v) {
-      setValidationError(v);
-      return;
-    }
-
+  /* ---------- Submit ---------- */
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setSubmitting(true);
+
+    const payload = {
+      customer_name: name.trim(),
+      customer_email: email.trim(),
+      customer_phone: phone.trim(),
+      customer_address: address.trim() || null,
+    };
+
     try {
       if (editing) {
-        const res = await fetch(
-          `${BASE_URL}customer/customer/${encodeURIComponent(
-            editing.customer_id
-          )}`,
-          {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              customer_name: name.trim(),
-              customer_email: email.trim(),
-              customer_phone: phone.trim(),
-              customer_addr: addr.trim() || null,
-            }),
-          }
-        );
-
-        const raw = await res.json().catch(() => null);
-        console.debug("PUT raw:", raw);
-
-        if (!res.ok) {
-          const msg =
-            raw?.message ||
-            raw?.data?.message ||
-            `Update failed: ${res.status}`;
-          throw new Error(msg);
-        }
-
-        const updated = unwrapSingle<Customer>(raw) || {
-          customer_id: editing.customer_id,
-          customer_name: name.trim(),
-          customer_email: email.trim(),
-          customer_phone: phone.trim(),
-          customer_addr: addr.trim() || null,
-        };
-
-        setCustomers((prev) =>
-          prev.map((p) => (p.customer_id === updated.customer_id ? updated : p))
-        );
-      } else {
-        const res = await fetch(`${BASE_URL}customer/customer`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            customer_name: name.trim(),
-            customer_email: email.trim(),
-            customer_phone: phone.trim(),
-            customer_addr: addr.trim() || null,
-          }),
+        await updateMut.trigger({
+          id: editing.customer_id,
+          body: payload,
         });
-
-        const raw = await res.json().catch(() => null);
-        console.debug("POST raw:", raw);
-
-        if (!res.ok) {
-          const msg =
-            raw?.message ||
-            raw?.data?.message ||
-            `Create failed: ${res.status}`;
-          throw new Error(msg);
-        }
-
-        const created = unwrapSingle<Customer>(raw);
-        if (created) {
-          setCustomers((prev) => [created, ...prev]);
-        } else {
-          await fetchList();
-        }
+      } else {
+        await createMut.trigger({ body: payload });
       }
       setModalOpen(false);
-    } catch (err: any) {
-      setValidationError(err.message || "Failed to submit");
     } finally {
       setSubmitting(false);
     }
-  }
+  };
 
-  async function handleDelete(c: Customer) {
-    const ok = window.confirm(`Delete customer "${c.customer_name}"?`);
-    if (!ok) return;
-    try {
-      const res = await fetch(
-        `${BASE_URL}customer/customer/${encodeURIComponent(c.customer_id)}`,
-        {
-          method: "DELETE",
-        }
-      );
-      const raw = await res.json().catch(() => null);
-      console.debug("DELETE raw:", raw);
-
-      if (!res.ok) {
-        const msg =
-          raw?.message || raw?.data?.message || `Delete failed: ${res.status}`;
-        throw new Error(msg);
-      }
-
-      setCustomers((prev) =>
-        prev.filter((p) => p.customer_id !== c.customer_id)
-      );
-    } catch (err: any) {
-      alert(err.message || "Failed to delete");
-    }
-  }
+  /* ---------- Delete ---------- */
+  const handleDelete = async (c: Customer) => {
+    if (!confirm(`Delete customer "${c.customer_name}"?`)) return;
+    await deleteMut.trigger(c.customer_id);
+  };
 
   return (
     <div className="customer">
       <header className="customer__header">
         <div>
           <h2 className="customer__title">Customers</h2>
-          <div>Manage serivces types</div>
+          <div>Manage customers</div>
         </div>
-
-        <button className="customer__add-btn" onClick={openCreateModal}>
+        <button className="customer__add-btn" onClick={openCreate}>
           Add Customer
         </button>
       </header>
 
-      {error && <div className="customer__error">{error}</div>}
-
-      {loading ? (
+      {isLoading ? (
         <div>Loading...</div>
       ) : customers.length === 0 ? (
         <div>No customers found.</div>
@@ -294,7 +142,7 @@ export default function CustomerCrud(): JSX.Element {
                   <div className="customer__actions">
                     <button
                       className="customer__action-btn customer__action-btn--edit"
-                      onClick={() => openEditModal(c)}
+                      onClick={() => openEdit(c)}
                     >
                       Edit
                     </button>
@@ -314,63 +162,58 @@ export default function CustomerCrud(): JSX.Element {
 
       <Modal
         title={editing ? "Edit Customer" : "Add Customer"}
-        visible={isModalOpen}
-        onClose={closeModal}
+        visible={modalOpen}
+        onClose={() => setModalOpen(false)}
       >
         <form className="form" onSubmit={handleSubmit}>
           <label className="form__field">
-            <span className="form__label">Name *</span>
+            Name *
             <input
-              className="form__input"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              disabled={isSubmitting}
+              disabled={submitting}
             />
           </label>
 
           <label className="form__field">
-            <span className="form__label">Email *</span>
+            Email *
             <input
-              className="form__input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              disabled={isSubmitting}
+              disabled={submitting}
             />
           </label>
 
           <label className="form__field">
-            <span className="form__label">Phone *</span>
+            Phone *
             <input
-              className="form__input"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              disabled={isSubmitting}
+              disabled={submitting}
             />
           </label>
 
           <label className="form__field">
             Address
             <input
-              className="form__input"
-              value={addr}
-              onChange={(e) => setAddr(e.target.value)}
-              disabled={isSubmitting}
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              disabled={submitting}
             />
           </label>
 
-          {validationError && (
-            <div className="form__error">{validationError}</div>
-          )}
           <div className="form__actions">
-            <button type="button" onClick={closeModal} disabled={isSubmitting}>
+            <button type="button" onClick={() => setModalOpen(false)}>
               Cancel
             </button>
-            <button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : editing ? "Update" : "Create"}
+            <button type="submit" disabled={submitting}>
+              {submitting ? "Saving..." : editing ? "Update" : "Create"}
             </button>
           </div>
         </form>
       </Modal>
     </div>
   );
-}
+};
+
+export default CustomerCrud;

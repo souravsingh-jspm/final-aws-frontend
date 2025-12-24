@@ -1,24 +1,29 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router";
-import Home from "./Home";
-import AppLayout from "./layout/Layout";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import AppLayout from "@/layout/Layout";
+import LandingLayout from "@/layout/landinglayout/LandingLayout";
+import ProtectedRoute from "@/auth/ProtectedRoute";
+import Login from "@/pages/auth/SignIn";
+import Home from "@/pages/home/Home";
+import OrderList from "./pages/orders/Orders";
+import CustomerOrders from "./pages/orders/component/CustomerOrders";
+import OrderItems from "./pages/OrderItems/OrderItems";
+import Orders from "./pages/orders/Orders";
 import Service from "./pages/services/Service";
 import Garment from "./pages/garments/Garment";
 import Customer from "./pages/customers/Customer";
-import Orders from "./pages/orders/Orders";
-import OrderItems from "./pages/OrderItems/OrderItems";
-import OrderList from "./pages/orders/Orders";
-import CustomerOrders from "./pages/orders/component/CustomerOrders";
-// import SignIn from "./pages/auth/SignIn";
-// import SignUp from "./pages/auth/SignUp";
 
 const App = () => {
   return (
-    <>
-      <Router>
-        <Routes>
+    <BrowserRouter>
+      <Routes>
+        {/* Public */}
+        <Route element={<LandingLayout />}>
+          <Route path="/sign-in" element={<Login />} />
+        </Route>
+
+        {/* Protected */}
+        <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
-            {/* <Route index path="/signin" element={<SignIn />} />
-            <Route index path="/signup" element={<SignUp />} /> */}
             <Route index path="/" element={<Home />} />
             <Route path="/orders" element={<OrderList />} />
             <Route
@@ -31,9 +36,9 @@ const App = () => {
             <Route index path="/admin-garment" element={<Garment />} />
             <Route index path="/admin-customer" element={<Customer />} />
           </Route>
-        </Routes>
-      </Router>
-    </>
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 };
 
