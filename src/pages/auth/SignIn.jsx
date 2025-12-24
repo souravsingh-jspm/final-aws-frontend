@@ -1,7 +1,6 @@
 import "./auth.css";
 import { useState } from "react";
-
-const BASE_URL = "https://api.shivaliwashingcompany.in/users/users";
+import { BASE_URL } from "../../constant/appConstant";
 
 const Login = () => {
   const [credentials, setCredentials] = useState({
@@ -21,7 +20,7 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch(`${BASE_URL}`, {
+      const response = await fetch(`${BASE_URL}users/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

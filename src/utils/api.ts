@@ -1,7 +1,5 @@
-// import { API_URL } from "@/constant/appConstant";
 import axios, { type AxiosResponse } from "axios";
-export const API_URL = "https://api.shivaliwashingcompany.in/";
-
+import { BASE_URL } from "../constant/appConstant";
 export interface ApiResponse<T> {
   data: T;
   message: string;
@@ -23,12 +21,8 @@ export interface CommonPaginationType<T> {
   count: number;
 }
 
-// const token =
-//   localStorage.getItem("token") &&
-//   JSON.parse(localStorage.getItem("token") ?? "");
-
 const axiosInstance = axios.create({
-  baseURL: API_URL,
+  baseURL: BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },

@@ -1,4 +1,5 @@
 import "./Customer.css";
+import { BASE_URL } from "../../constant/appConstant";
 import React, { JSX, useEffect, useState } from "react";
 type Customer = {
   customer_id: string;
@@ -9,8 +10,6 @@ type Customer = {
   customer_createdAt?: string;
   customer_updatedAt?: string;
 };
-
-const BASE = "https://api.shivaliwashingcompany.in/customer/customer";
 
 function unwrapArray<T>(raw: any): T[] {
   if (!raw) return [];
@@ -88,7 +87,9 @@ export default function CustomerCrud(): JSX.Element {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(BASE, { method: "GET" });
+      const res = await fetch(`${BASE_URL}customer/customer`, {
+        method: "GET",
+      });
       const raw = await res.json().catch(() => null);
       console.debug("GET raw:", raw);
       const list = unwrapArray<Customer>(raw);
@@ -150,7 +151,9 @@ export default function CustomerCrud(): JSX.Element {
     try {
       if (editing) {
         const res = await fetch(
-          `${BASE}/${encodeURIComponent(editing.customer_id)}`,
+          `${BASE_URL}customer/customer/${encodeURIComponent(
+            editing.customer_id
+          )}`,
           {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -186,7 +189,7 @@ export default function CustomerCrud(): JSX.Element {
           prev.map((p) => (p.customer_id === updated.customer_id ? updated : p))
         );
       } else {
-        const res = await fetch(BASE, {
+        const res = await fetch(`${BASE_URL}customer/customer`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -227,9 +230,12 @@ export default function CustomerCrud(): JSX.Element {
     const ok = window.confirm(`Delete customer "${c.customer_name}"?`);
     if (!ok) return;
     try {
-      const res = await fetch(`${BASE}/${encodeURIComponent(c.customer_id)}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(
+        `${BASE_URL}customer/customer/${encodeURIComponent(c.customer_id)}`,
+        {
+          method: "DELETE",
+        }
+      );
       const raw = await res.json().catch(() => null);
       console.debug("DELETE raw:", raw);
 

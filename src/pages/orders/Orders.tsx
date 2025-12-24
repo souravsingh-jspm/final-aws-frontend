@@ -1,5 +1,6 @@
 import "./Orders.css";
 import React, { useEffect, useState, useRef, JSX } from "react";
+import { BASE_URL } from "../../constant/appConstant";
 
 type Customer = {
   customer_id: string;
@@ -46,7 +47,7 @@ type Order = {
   items?: OrderItem[] | null;
 };
 
-const ORDER_BASE = "https://api.shivaliwashingcompany.in/order/order";
+const ORDER_BASE = BASE_URL + "order/order";
 
 function unwrapArray<T>(raw: any): T[] {
   if (!raw) return [];

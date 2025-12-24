@@ -1,9 +1,7 @@
 import "./Service.css";
 import React, { JSX, useEffect, useState } from "react";
+import { BASE_URL } from "../../constant/appConstant";
 
-/**
- * Types returned by API
- */
 type Garment = {
   garment_id: string;
   garment_name: string;
@@ -18,8 +16,8 @@ type Service = {
   garment?: Garment | null;
 };
 
-const GARMENT_BASE = "https://api.shivaliwashingcompany.in/garment/garment";
-const SERVICE_BASE = "https://api.shivaliwashingcompany.in/service/service";
+const GARMENT_BASE = BASE_URL + "garment/garment";
+const SERVICE_BASE = BASE_URL + "service/service";
 
 /* ---------- helpers to handle wrapped API responses ---------- */
 function unwrapArray<T>(raw: any): T[] {
