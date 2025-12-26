@@ -1,8 +1,8 @@
 // import { API_URL } from "@/constant/appConstant";
 import axios, { type AxiosResponse } from "axios";
-// export const API_URL = "https://api.shivaliwashingcompany.in/";
+export const API_URL = "https://api.shivaliwashingcompany.in/";
 
-export const API_URL = "http://localhost:3001/";
+// export const API_URL = "http://localhost:3001/";
 export interface ApiResponse<T> {
   data: T;
   message: string;
