@@ -202,9 +202,15 @@ export default function OrderList(): JSX.Element {
 
   function formatDate(iso?: string | null | undefined) {
     if (!iso) return "-";
+
     const d = new Date(iso);
     if (Number.isNaN(d.getTime())) return "-";
-    return d.toLocaleString();
+
+    return d.toLocaleDateString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
+      year: "numeric",
+    });
   }
 
   return (

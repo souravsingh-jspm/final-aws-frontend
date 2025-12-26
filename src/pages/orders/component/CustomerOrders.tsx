@@ -1,3 +1,4 @@
+import { BASE_URL } from "@/constant/appConstant";
 import "./CustomerOrders.css";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
@@ -29,9 +30,7 @@ export default function CustomerOrders() {
     setError(null);
 
     try {
-      const res = await fetch(
-        `https://api.shivaliwashingcompany.in/order/order/customer/${customer_id}`
-      );
+      const res = await fetch(`${BASE_URL}order/order/customer/${customer_id}`);
       const data = await res.json();
       setOrders(Array.isArray(data) ? data : data.data || []);
     } catch (err: any) {
@@ -43,7 +42,11 @@ export default function CustomerOrders() {
 
   function formatDate(date?: string) {
     if (!date) return "-";
-    return new Date(date).toLocaleString();
+    return new Date(date).toLocaleDateString("en-US", {
+      month: "2-digit",
+      day: "2-digit",
+      year: "numeric",
+    });
   }
 
   return (

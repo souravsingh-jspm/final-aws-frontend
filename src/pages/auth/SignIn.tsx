@@ -1,3 +1,4 @@
+import "./SignIn.css";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BASE_URL } from "@/constant/appConstant";
@@ -32,7 +33,6 @@ const Login = () => {
     saveAuth(token, safeUser);
     setIsAuthenticated(true);
 
-    // Force logout after 5 minutes
     setTimeout(() => {
       localStorage.clear();
       window.location.href = "/sign-in";
@@ -42,20 +42,39 @@ const Login = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        name="user_value"
-        placeholder="Email or Phone"
-        onChange={(e) => setForm({ ...form, user_value: e.target.value })}
-      />
-      <input
-        type="password"
-        name="user_password"
-        placeholder="Password"
-        onChange={(e) => setForm({ ...form, user_password: e.target.value })}
-      />
-      <button type="submit">Login</button>
-    </form>
+    <div className="login-container">
+      <div className="login-card">
+        <h1 className="login-title">Sign In</h1>
+        <p className="login-subtitle">Welcome back. Please login.</p>
+
+        <form className="login-form" onSubmit={handleSubmit}>
+          <input
+            className="login-input"
+            name="user_value"
+            placeholder="Email or Phone"
+            onChange={(e) => setForm({ ...form, user_value: e.target.value })}
+          />
+
+          <input
+            className="login-input"
+            type="password"
+            name="user_password"
+            placeholder="Password"
+            onChange={(e) =>
+              setForm({ ...form, user_password: e.target.value })
+            }
+          />
+
+          <button className="login-button" type="submit">
+            Login
+          </button>
+        </form>
+
+        <div className="login-footer">
+          © {new Date().getFullYear()} New Shivali Washing Company
+        </div>
+      </div>
+    </div>
   );
 };
 
