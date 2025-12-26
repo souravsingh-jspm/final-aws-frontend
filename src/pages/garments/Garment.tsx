@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useSWRConfig } from "swr";
 import "./Garment.css";
 import {

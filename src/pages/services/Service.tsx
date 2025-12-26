@@ -49,13 +49,14 @@ const ServiceCrud: React.FC = () => {
   const [isActive, setIsActive] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
-  /* ---------- Sync data ---------- */
   useEffect(() => {
-    if (data?.data) setServices(data.data);
+    if (data?.data && Array.isArray(data.data)) setServices(data.data);
   }, [data]);
 
   useEffect(() => {
-    if (garmentData?.data) setGarments(garmentData.data);
+    if (garmentData?.data && Array.isArray(garmentData.data)) {
+      setGarments(garmentData.data);
+    }
   }, [garmentData]);
 
   /* ---------- Modal helpers ---------- */

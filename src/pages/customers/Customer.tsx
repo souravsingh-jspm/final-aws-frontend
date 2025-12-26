@@ -49,7 +49,9 @@ const CustomerCrud: React.FC = () => {
 
   /* ---------- Sync list ---------- */
   useEffect(() => {
-    if (data?.data) setCustomers(data.data);
+    if (data?.data) {
+      setCustomers(Array.isArray(data.data) ? data.data : []);
+    }
   }, [data]);
 
   /* ---------- Modal helpers ---------- */
