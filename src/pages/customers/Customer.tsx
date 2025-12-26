@@ -178,7 +178,7 @@ const CustomerCrud: React.FC = () => {
           </label>
 
           <label className="form__field">
-            Email *
+            Email
             <input
               value={email}
               onChange={(e) => setEmail(e.target.value)}

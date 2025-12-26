@@ -62,8 +62,8 @@ export default function OrderCreator(): JSX.Element {
   ]);
 
   const [orderAvailability, setOrderAvailability] = useState<
-    "LOW" | "MODERATE" | "HIGH" | string | undefined
-  >("MODERATE");
+    "MAHA_URGENT" | "URGENT" | "NORMAL" | string | undefined
+  >("NORMAL");
   const [orderReturnExpectedBy, setOrderReturnExpectedBy] = useState<
     string | undefined
   >(undefined); // ISO string
@@ -204,7 +204,7 @@ export default function OrderCreator(): JSX.Element {
       setSuccessMsg("Order and items created successfully.");
       setItems([{ id: uid("r_"), quantity: 1 }]);
       setCustomerId("");
-      setOrderAvailability("MODERATE");
+      setOrderAvailability("NORMAL");
       setOrderReturnExpectedBy(undefined);
       await loadAll();
     } catch (err: any) {
@@ -256,18 +256,22 @@ export default function OrderCreator(): JSX.Element {
               </label>
               <select
                 className="w-full border rounded-md p-2"
-                value={orderAvailability ?? "MODERATE"}
+                value={orderAvailability ?? "NORMAL"}
                 onChange={(e) =>
                   setOrderAvailability(
-                    e.target.value as "LOW" | "MODERATE" | "HIGH" | string
+                    e.target.value as
+                      | "MAHA_URGENT"
+                      | "NORMAL"
+                      | "URGENT"
+                      | string
                   )
                 }
                 disabled={submitting}
                 aria-label="Order availability"
               >
-                <option value="LOW">LOW</option>
-                <option value="MODERATE">MODERATE</option>
-                <option value="HIGH">HIGH</option>
+                <option value="URGENT">URGENT</option>
+                <option value="NORMAL">NORMAL</option>
+                <option value="MAHA_URGENT">MAHA_URGENT</option>
               </select>
             </div>
 
@@ -417,7 +421,7 @@ export default function OrderCreator(): JSX.Element {
             onClick={() => {
               setItems([{ id: uid("r_"), quantity: 1 }]);
               setCustomerId("");
-              setOrderAvailability("MODERATE");
+              setOrderAvailability("NORMAL");
               setOrderReturnExpectedBy(undefined);
               setError(null);
               setSuccessMsg(null);
