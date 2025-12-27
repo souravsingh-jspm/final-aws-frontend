@@ -2,6 +2,10 @@ import "./Orders.css";
 import React, { useEffect, useState, useRef, JSX } from "react";
 import { BASE_URL } from "../../constant/appConstant";
 
+/* =======================
+   Types
+======================= */
+
 type Customer = {
   customer_id: string;
   customer_name?: string;
@@ -41,21 +45,47 @@ type Order = {
   updatedAt?: string;
   status?: string;
   availability_status?: string;
-  quantity?: number;
+  quantity?: number | string;
   customer_phone?: string;
   customer_name?: string;
   items?: OrderItem[] | null;
 };
 
+/* =======================
+   Constants
+======================= */
+
 const ORDER_BASE = BASE_URL + "order/order";
+
+/* =======================
+   Helpers
+======================= */
 
 function unwrapArray<T>(raw: any): T[] {
   if (!raw) return [];
   if (Array.isArray(raw)) return raw;
-  if (raw && Array.isArray(raw.data)) return raw.data;
-  if (raw && Array.isArray(raw.items)) return raw.items;
+  if (raw?.data && Array.isArray(raw.data)) return raw.data;
+  if (raw?.items && Array.isArray(raw.items)) return raw.items;
   return [];
 }
+
+function mapCustomersToOrders(customers: any[]): Order[] {
+  return customers.map((c) => ({
+    order_id: `customer-${c.customer_id}`,
+    customer_id: c.customer_id,
+    customer_name: c.customer_name ?? "-",
+    customer_phone: c.customer_phone ?? "-",
+    quantity: "-",
+    status: "-",
+    availability_status: "-",
+    return_expected_by: undefined,
+    items: [],
+  }));
+}
+
+/* =======================
+   Modal
+======================= */
 
 const Modal: React.FC<{
   visible: boolean;
@@ -69,7 +99,7 @@ const Modal: React.FC<{
       <div className="modal__content">
         <div className="modal__header">
           <strong>{title}</strong>
-          <button className="modal__close" onClick={onClose} aria-label="Close">
+          <button className="modal__close" onClick={onClose}>
             ×
           </button>
         </div>
@@ -79,30 +109,33 @@ const Modal: React.FC<{
   );
 };
 
+/* =======================
+   Component
+======================= */
+
 export default function OrderList(): JSX.Element {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [detailsOrder, setDetailsOrder] = useState<Order | null>(null);
-  const [detailsLoading] = useState(false);
 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const debounceRef = useRef<number | null>(null);
+
   useEffect(() => {
     fetchOrders();
   }, []);
 
-  // debounce search input
   useEffect(() => {
-    if (debounceRef.current) window.clearTimeout(debounceRef.current);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     debounceRef.current = window.setTimeout(
       () => setDebouncedSearch(search.trim()),
       400
     );
     return () => {
-      if (debounceRef.current) window.clearTimeout(debounceRef.current);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, [search]);
 
@@ -113,28 +146,23 @@ export default function OrderList(): JSX.Element {
   async function fetchOrders(searchTerm = "") {
     setLoading(true);
     setError(null);
+
     try {
-      const url = searchTerm
-        ? `https://api.shivaliwashingcompany.in/customer/customer-search?search=${encodeURIComponent(
+      const isSearch = Boolean(searchTerm);
+      const url = isSearch
+        ? `http://localhost:3001/customer/customer-search?search=${encodeURIComponent(
             searchTerm
           )}`
         : ORDER_BASE;
-      const res = await fetch(url, { method: "GET" });
+
+      const res = await fetch(url);
       const raw = await res.json().catch(() => null);
-      console.debug("GET orders raw:", raw);
+      const list = unwrapArray<any>(raw);
 
-      const list = unwrapArray<Order>(raw);
-      if (list && list.length >= 0) {
-        setOrders(list);
-        return;
-      }
-
-      if (raw && Array.isArray(raw)) {
-        setOrders(raw);
-      } else if (raw && raw.data && Array.isArray(raw.data)) {
-        setOrders(raw.data);
+      if (isSearch) {
+        setOrders(mapCustomersToOrders(list));
       } else {
-        setOrders([]);
+        setOrders(list as Order[]);
       }
     } catch (err: any) {
       setError(err?.message || "Failed to fetch orders");
@@ -144,74 +172,27 @@ export default function OrderList(): JSX.Element {
     }
   }
 
-  function closeDetails() {
-    setDetailsOrder(null);
-  }
-
   async function handleDelete(order_id: string) {
+    if (order_id.startsWith("customer-")) return;
     if (!confirm("Delete this order?")) return;
+
     try {
-      const res = await fetch(`${ORDER_BASE}/${encodeURIComponent(order_id)}`, {
-        method: "DELETE",
-      });
-      if (!res.ok) {
-        const raw = await res.json().catch(() => null);
-        throw new Error(raw?.message || `Delete failed: ${res.status}`);
-      }
+      await fetch(`${ORDER_BASE}/${order_id}`, { method: "DELETE" });
       setOrders((prev) => prev.filter((o) => o.order_id !== order_id));
-      if (detailsOrder?.order_id === order_id) setDetailsOrder(null);
-    } catch (err: any) {
-      alert(err?.message || "Failed to delete");
+    } catch {
+      alert("Failed to delete order");
     }
   }
 
-  const filteredOrders = React.useMemo(() => {
-    const q = debouncedSearch.toLowerCase();
-    if (!q) return orders;
-    return orders.filter((o) => {
-      const name = (o.customer?.customer_name ?? "").toLowerCase();
-      const phone = (o.customer?.customer_phone ?? "").toLowerCase();
-      const email = (o.customer?.customer_email ?? "").toLowerCase();
-      const id = (o.customer_id ?? "").toLowerCase();
-      return (
-        name.includes(q) ||
-        phone.includes(q) ||
-        email.includes(q) ||
-        id.includes(q)
-      );
-    });
-  }, [orders, debouncedSearch]);
-
-  function earliestReturnExpected(
-    items?: OrderItem[] | null,
-    orderLevel?: string | undefined
-  ): string | null {
-    if (orderLevel) return orderLevel;
-    if (!items || items.length === 0) return null;
-    const dates = items
-      .map((it) => it.return_expected_by)
-      .filter(Boolean)
-      .map((s) => new Date(s as string))
-      .filter((d) => !Number.isNaN(d.getTime()));
-    if (dates.length === 0) return null;
-    const earliest = dates.reduce((a, b) =>
-      a.getTime() <= b.getTime() ? a : b
-    );
-    return earliest.toISOString();
-  }
-
-  function formatDate(iso?: string | null | undefined) {
+  function formatDate(iso?: string | null) {
     if (!iso) return "-";
-
     const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return "-";
-
-    return d.toLocaleDateString("en-US", {
-      month: "2-digit",
-      day: "2-digit",
-      year: "numeric",
-    });
+    return Number.isNaN(d.getTime()) ? "-" : d.toLocaleDateString("en-US");
   }
+
+  /* =======================
+     Render
+  ======================= */
 
   return (
     <div className="orders">
@@ -223,19 +204,13 @@ export default function OrderList(): JSX.Element {
 
         <div className="orders__search">
           <input
-            className="orders__search-input"
-            placeholder="Search by customer ..."
+            className="order_search_input"
+            placeholder="Search by customer..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          <button onClick={() => fetchOrders(debouncedSearch)}>Search</button>
           <button
-            className="orders__btn orders__btn--primary"
-            onClick={() => fetchOrders(debouncedSearch)}
-          >
-            Search
-          </button>
-          <button
-            className="orders__btn orders__btn--secondary"
             onClick={() => {
               setSearch("");
               setDebouncedSearch("");
@@ -246,10 +221,11 @@ export default function OrderList(): JSX.Element {
           </button>
         </div>
       </header>
+
       {error && <div className="orders__error">{error}</div>}
       {loading ? (
         <div>Loading orders...</div>
-      ) : filteredOrders.length === 0 ? (
+      ) : orders.length === 0 ? (
         <div className="orders__empty">No orders found.</div>
       ) : (
         <table className="orders__table">
@@ -258,143 +234,52 @@ export default function OrderList(): JSX.Element {
               <th>Name</th>
               <th>Phone</th>
               <th>Quantity</th>
-              <th>Return expected</th>
+              <th>Return Expected</th>
               <th>Priority</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
-
           <tbody>
-            {filteredOrders.map((o) => {
-              const earliest = earliestReturnExpected(
-                o.items ?? null,
-                o.return_expected_by
-              );
-              return (
-                <tr key={o.order_id}>
-                  <td>{o.customer_name ?? o.customer_id}</td>
-                  <td>{o.customer_phone ?? "-"}</td>
-                  <td>{o.quantity}</td>
-                  <td>{formatDate(earliest)}</td>
-                  <td>{o.availability_status ?? o.customer_id}</td>
-                  <td>{o.status ?? o.customer_id}</td>
-                  <td>
-                    <div className="orders__actions">
-                      <button
-                        className="orders__btn orders__btn--secondary"
-                        onClick={() => {
-                          window.location.href = `/customer-orders/${o.customer_id}`;
-                        }}
-                      >
-                        View
-                      </button>
-                      <button
-                        className="orders__btn orders__btn--danger"
-                        onClick={() => handleDelete(o.order_id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
+            {orders.map((o) => (
+              <tr key={o.order_id}>
+                <td>{o.customer_name ?? o.customer_id}</td>
+                <td>{o.customer_phone ?? "-"}</td>
+                <td>{o.quantity ?? "-"}</td>
+                <td>{formatDate(o.return_expected_by)}</td>
+                <td>{o.availability_status ?? "-"}</td>
+                <td>{o.status ?? "-"}</td>
+                <td>
+                  <button
+                    onClick={() =>
+                      (window.location.href = `/customer-orders/${o.customer_id}`)
+                    }
+                  >
+                    View
+                  </button>
+                  <button
+                    disabled={o.order_id.startsWith("customer-")}
+                    onClick={() => handleDelete(o.order_id)}
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       )}
+
       <Modal
         visible={!!detailsOrder}
-        title="Order details"
-        onClose={closeDetails}
+        title="Order Details"
+        onClose={() => setDetailsOrder(null)}
       >
-        {detailsLoading ? (
-          <div>Loading details...</div>
-        ) : detailsOrder ? (
+        {detailsOrder ? (
           <div>
-            <div>
-              <strong>Order:</strong> <span>{detailsOrder.order_id}</span>
-            </div>
-
-            <div>
-              <strong>Customer:</strong>{" "}
-              {detailsOrder.customer?.customer_name ?? detailsOrder.customer_id}
-            </div>
-
-            <div>
-              <strong>Phone:</strong>{" "}
-              {detailsOrder.customer?.customer_phone ?? "-"}
-            </div>
-
-            <div>
-              <strong>Email:</strong>{" "}
-              {detailsOrder.customer?.customer_email ?? "-"}
-            </div>
-
-            <div>
-              <strong>Order return expected:</strong>{" "}
-              {formatDate(
-                detailsOrder.return_expected_by ??
-                  earliestReturnExpected(detailsOrder.items ?? null)
-              )}
-            </div>
-
-            <div>
-              <strong>Created:</strong>{" "}
-              {detailsOrder.createdAt
-                ? new Date(detailsOrder.createdAt).toLocaleString()
-                : "-"}
-            </div>
-
-            <hr />
-
-            <h4>Items / Services</h4>
-            {!detailsOrder.items || detailsOrder.items.length === 0 ? (
-              <div>No items found for this order.</div>
-            ) : (
-              <table>
-                <thead>
-                  <tr>
-                    <th>Garment</th>
-                    <th>Service</th>
-                    <th>Quantity</th>
-                    <th>Availability</th>
-                    <th>Return expected</th>
-                    <th>Created</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {detailsOrder.items!.map((it) => (
-                    <tr key={it.id}>
-                      <td>
-                        {it.garment?.garment_name ?? it.garment_id ?? "-"}
-                      </td>
-                      <td>
-                        {it.service?.service_name ?? it.service_id ?? "-"}
-                      </td>
-                      <td>
-                        {typeof it.quantity === "number" ? it.quantity : "-"}
-                      </td>
-                      <td>{it.availability_status ?? "-"}</td>
-                      <td>
-                        {it.return_expected_by
-                          ? formatDate(it.return_expected_by)
-                          : "-"}
-                      </td>
-                      <td>
-                        {it.createdAt
-                          ? new Date(it.createdAt).toLocaleString()
-                          : "-"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+            <strong>Order ID:</strong> {detailsOrder.order_id}
           </div>
-        ) : (
-          <div>No details available.</div>
-        )}
+        ) : null}
       </Modal>
     </div>
   );

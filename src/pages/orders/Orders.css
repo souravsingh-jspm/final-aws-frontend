@@ -32,6 +32,8 @@
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  border: 2px solid black;
+  border-radius: 0.3rem;
 }
 
 .orders__search-input {
@@ -41,6 +43,22 @@
   padding: 0 10px;
   border-radius: 8px;
   border: 1px solid #d1d5db;
+  padding: 1rem;
+}
+
+.order_search_input {
+  padding: 10px 20px;
+}
+
+.orders__btn:focus,
+.orders__btn:focus-visible {
+  outline: none;
+}
+
+.orders__search-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.15);
 }
 
 /* ================= BUTTONS ================= */

@@ -30,25 +30,21 @@ const STATUS_OPTIONS: OrderStatus[] = [
   "CANCELLED",
 ];
 
-/* ---------- Component ---------- */
 export default function CustomerOrders() {
   const { customer_id } = useParams();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [editingOrder, setEditingOrder] = useState<Order | null>(null);
-  const [status, setStatus] = useState<OrderStatus>("PENDING");
-  const [saving, setSaving] = useState(false);
+  // Track which order is currently being saved to show a local spinner
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-  /* ---------- Fetch orders ---------- */
   useEffect(() => {
     fetchCustomerOrders();
   }, [customer_id]);
 
   async function fetchCustomerOrders() {
     if (!customer_id) return;
-
     setLoading(true);
     setError(null);
     try {
@@ -62,40 +58,34 @@ export default function CustomerOrders() {
     }
   }
 
-  /* ---------- Edit helpers ---------- */
-  function openEdit(order: Order) {
-    setEditingOrder(order);
-    setStatus(order.status ?? "PENDING");
-  }
-
-  async function updateStatus() {
-    if (!editingOrder) return;
-
-    setSaving(true);
+  /* ---------- Inline Update Logic ---------- */
+  async function handleStatusChange(orderId: string, newStatus: OrderStatus) {
+    setUpdatingId(orderId);
     try {
       const res = await fetch(`${BASE_URL}order-item/order-item`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          order_id: editingOrder.order_id,
-          status,
+          order_id: orderId,
+          status: newStatus,
         }),
       });
 
-      if (!res.ok) {
-        throw new Error("Failed to update order status");
-      }
+      if (!res.ok) throw new Error("Failed to update status");
 
-      await fetchCustomerOrders();
-      setEditingOrder(null);
+      // Update local state immediately so UI feels snappy
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.order_id === orderId ? { ...o, status: newStatus } : o
+        )
+      );
     } catch (err: any) {
-      setError(err.message || "Failed to update order status");
+      alert(err.message || "Error updating status");
     } finally {
-      setSaving(false);
+      setUpdatingId(null);
     }
   }
 
-  /* ---------- Utils ---------- */
   function formatDate(date?: string) {
     if (!date) return "-";
     return new Date(date).toLocaleDateString("en-US", {
@@ -105,7 +95,6 @@ export default function CustomerOrders() {
     });
   }
 
-  /* ---------- UI ---------- */
   return (
     <div className="customer-orders">
       <h2 className="customer-orders__title">Customer Orders</h2>
@@ -123,13 +112,7 @@ export default function CustomerOrders() {
       {loading && <div className="customer-orders__loading">Loading...</div>}
       {error && <div className="customer-orders__error">{error}</div>}
 
-      {!loading && orders.length === 0 && (
-        <div className="customer-orders__empty">
-          No orders found for this customer.
-        </div>
-      )}
-
-      {orders.length > 0 && (
+      {!loading && orders.length > 0 && (
         <table className="customer-orders__table">
           <thead>
             <tr>
@@ -138,7 +121,6 @@ export default function CustomerOrders() {
               <th>Availability</th>
               <th>Status</th>
               <th>Created</th>
-              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -147,45 +129,34 @@ export default function CustomerOrders() {
                 <td>{o.customer_name}</td>
                 <td>{formatDate(o.return_expected_by)}</td>
                 <td>{o.availability_status}</td>
-                <td>{o.status}</td>
-                <td>{formatDate(o.order_created)}</td>
                 <td>
-                  <button onClick={() => openEdit(o)}>Edit</button>
+                  {/* --- INLINE DROPDOWN --- */}
+                  <select
+                    className="status-select"
+                    value={o.status}
+                    disabled={updatingId === o.order_id}
+                    onChange={(e) =>
+                      handleStatusChange(
+                        o.order_id,
+                        e.target.value as OrderStatus
+                      )
+                    }
+                  >
+                    {STATUS_OPTIONS.map((s) => (
+                      <option key={s} value={s}>
+                        {s}
+                      </option>
+                    ))}
+                  </select>
+                  {updatingId === o.order_id && (
+                    <span className="mini-loader">...</span>
+                  )}
                 </td>
+                <td>{formatDate(o.order_created)}</td>
               </tr>
             ))}
           </tbody>
         </table>
-      )}
-
-      {/* ---------- Edit Modal ---------- */}
-      {editingOrder && (
-        <div className="modal-backdrop">
-          <div className="modal">
-            <h3>Edit Order Status</h3>
-
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value as OrderStatus)}
-              disabled={saving}
-            >
-              {STATUS_OPTIONS.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-
-            <div className="modal-actions">
-              <button onClick={() => setEditingOrder(null)} disabled={saving}>
-                Cancel
-              </button>
-              <button onClick={updateStatus} disabled={saving}>
-                {saving ? "Saving..." : "Update"}
-              </button>
-            </div>
-          </div>
-        </div>
       )}
     </div>
   );
