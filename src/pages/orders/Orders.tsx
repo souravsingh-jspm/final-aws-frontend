@@ -150,7 +150,7 @@ export default function OrderList(): JSX.Element {
     try {
       const isSearch = Boolean(searchTerm);
       const url = isSearch
-        ? `http://localhost:3001/customer/customer-search?search=${encodeURIComponent(
+        ? `https://api.shivaliwashingcompany.in/customer/customer-search?search=${encodeURIComponent(
             searchTerm
           )}`
         : ORDER_BASE;
