@@ -76,7 +76,6 @@ export const useUpdateService = () => {
           body: {
             service_name: string;
             garment_id: string;
-            is_active: boolean;
           };
         };
       }
