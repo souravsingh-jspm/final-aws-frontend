@@ -10,22 +10,24 @@ import {
 } from "@/services/Service";
 import { useGetAllGarmentsService } from "@/services/Garment";
 
-/* ---------- Modal ---------- */
+/* ---------- Modal (SAME AS CUSTOMER) ---------- */
 const Modal: React.FC<{
-  visible: boolean;
   title: string;
+  visible: boolean;
   onClose: () => void;
   children: React.ReactNode;
-}> = ({ visible, title, onClose, children }) => {
+}> = ({ title, visible, onClose, children }) => {
   if (!visible) return null;
   return (
-    <div className="modal-backdrop">
-      <div className="modal">
-        <header>
-          <h3>{title}</h3>
-          <button onClick={onClose}>×</button>
-        </header>
-        <div>{children}</div>
+    <div className="modal__overlay">
+      <div className="modal__content">
+        <div className="modal__header">
+          <strong>{title}</strong>
+          <button className="modal__close" onClick={onClose}>
+            ×
+          </button>
+        </div>
+        {children}
       </div>
     </div>
   );
@@ -46,7 +48,6 @@ const ServiceCrud: React.FC = () => {
   const [editing, setEditing] = useState<Service | null>(null);
   const [name, setName] = useState("");
   const [garmentId, setGarmentId] = useState("");
-  const [isActive, setIsActive] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -59,12 +60,10 @@ const ServiceCrud: React.FC = () => {
     }
   }, [garmentData]);
 
-  /* ---------- Modal helpers ---------- */
   const openCreate = () => {
     setEditing(null);
     setName("");
     setGarmentId("");
-    setIsActive(true);
     setModalOpen(true);
   };
 
@@ -72,11 +71,9 @@ const ServiceCrud: React.FC = () => {
     setEditing(s);
     setName(s.service_name);
     setGarmentId(s.garment_id);
-    setIsActive(Boolean(s.is_active));
     setModalOpen(true);
   };
 
-  /* ---------- Submit ---------- */
   const submitForm = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
@@ -84,12 +81,14 @@ const ServiceCrud: React.FC = () => {
     const payload = {
       service_name: name.trim(),
       garment_id: garmentId,
-      is_active: isActive,
     };
 
     try {
       if (editing) {
-        await updateMut.trigger({ id: editing.service_id, body: payload });
+        await updateMut.trigger({
+          id: editing.service_id,
+          body: payload,
+        });
       } else {
         await createMut.trigger({ body: payload });
       }
@@ -99,7 +98,6 @@ const ServiceCrud: React.FC = () => {
     }
   };
 
-  /* ---------- Delete ---------- */
   const handleDelete = async (s: Service) => {
     if (!confirm(`Delete service "${s.service_name}"?`)) return;
     await deleteMut.trigger(s.service_id);
@@ -107,15 +105,20 @@ const ServiceCrud: React.FC = () => {
 
   return (
     <div className="services">
-      <header>
-        <h2>Services</h2>
-        <button onClick={openCreate}>Add Service</button>
+      <header className="services__header">
+        <div>
+          <h2 className="services__title">Services</h2>
+          <div>Manage services</div>
+        </div>
+        <button className="services__add-btn" onClick={openCreate}>
+          Add Service
+        </button>
       </header>
 
       {services.length === 0 ? (
         <div>No services found.</div>
       ) : (
-        <table>
+        <table className="services__table">
           <thead>
             <tr>
               <th>Name</th>
@@ -128,14 +131,14 @@ const ServiceCrud: React.FC = () => {
               <tr key={s.service_id}>
                 <td>{s.service_name}</td>
                 <td>
-                  {s.garment?.garment_name ??
-                    garments.find((g) => g.garment_id === s.garment_id)
-                      ?.garment_name ??
-                    "-"}
+                  {garments.find((g) => g.garment_id === s.garment_id)
+                    ?.garment_name ?? "-"}
                 </td>
                 <td>
-                  <button onClick={() => openEdit(s)}>Edit</button>
-                  <button onClick={() => handleDelete(s)}>Delete</button>
+                  <div className="services__actions">
+                    <button onClick={() => openEdit(s)}>Edit</button>
+                    <button onClick={() => handleDelete(s)}>Delete</button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -144,42 +147,37 @@ const ServiceCrud: React.FC = () => {
       )}
 
       <Modal
-        visible={modalOpen}
         title={editing ? "Edit Service" : "Add Service"}
+        visible={modalOpen}
         onClose={() => setModalOpen(false)}
       >
-        <form onSubmit={submitForm}>
-          <label>Service Name</label>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            disabled={submitting}
-          />
-
-          <label>Garment</label>
-          <select
-            value={garmentId}
-            onChange={(e) => setGarmentId(e.target.value)}
-            disabled={submitting}
-          >
-            <option value="">Select garment</option>
-            {garments.map((g) => (
-              <option key={g.garment_id} value={g.garment_id}>
-                {g.garment_name}
-              </option>
-            ))}
-          </select>
-
-          <label>
+        <form className="form" onSubmit={submitForm}>
+          <label className="form__field">
+            Service Name
             <input
-              type="checkbox"
-              checked={isActive}
-              onChange={(e) => setIsActive(e.target.checked)}
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              disabled={submitting}
             />
-            Active
           </label>
 
-          <div>
+          <label className="form__field">
+            Garment
+            <select
+              value={garmentId}
+              onChange={(e) => setGarmentId(e.target.value)}
+              disabled={submitting}
+            >
+              <option value="">Select garment</option>
+              {garments.map((g) => (
+                <option key={g.garment_id} value={g.garment_id}>
+                  {g.garment_name}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <div className="form__actions">
             <button type="button" onClick={() => setModalOpen(false)}>
               Cancel
             </button>
