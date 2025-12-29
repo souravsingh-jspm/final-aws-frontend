@@ -1,3 +1,4 @@
+import { BASE_URL } from "../../constant/appConstant";
 import "./Dashboard.css";
 import { useEffect, useState } from "react";
 
@@ -25,7 +26,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:3001/dashboard/dashboard")
+    fetch(`${BASE_URL}dashboard/dashboard`)
       .then((res) => res.json())
       .then((res) => {
         setData(res.data);

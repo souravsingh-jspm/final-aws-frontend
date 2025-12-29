@@ -16,7 +16,7 @@ export const authFetch = async (url: string, options: RequestInit = {}) => {
 
   if (response.status === 401) {
     localStorage.clear();
-    window.location.href = "/sign-in";
+    window.location.href = "/";
     throw new Error("Session expired. Please login again.");
   }
 

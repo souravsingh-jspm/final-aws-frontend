@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ROUTES } from "./constant/appConstant";
 import AppLayout from "@/layout/Layout";
 import LandingLayout from "@/layout/landinglayout/LandingLayout";
 import ProtectedRoute from "@/auth/ProtectedRoute";
@@ -11,30 +12,29 @@ import Orders from "./pages/orders/Orders";
 import Service from "./pages/services/Service";
 import Garment from "./pages/garments/Garment";
 import Customer from "./pages/customers/Customer";
+import Dashboard from "./pages/dashboard/Dashboard";
 
 const App = () => {
   return (
     <BrowserRouter>
       <Routes>
         {/* Public */}
+        <Route path={ROUTES.SIGN_IN} element={<Login />} />
         <Route element={<LandingLayout />}>
-          <Route path="/sign-in" element={<Login />} />
+          <Route index path={ROUTES.HOME} element={<Home />} />
         </Route>
 
         {/* Protected */}
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
-            <Route index path="/" element={<Home />} />
-            <Route path="/orders" element={<OrderList />} />
-            <Route
-              path="/customer-orders/:customer_id"
-              element={<CustomerOrders />}
-            />
-            <Route index path="/admin-order" element={<Orders />} />
-            <Route index path="/admin-order-items" element={<OrderItems />} />
-            <Route index path="/admin-service" element={<Service />} />
-            <Route index path="/admin-garment" element={<Garment />} />
-            <Route index path="/admin-customer" element={<Customer />} />
+            <Route index path={ROUTES.DASHBOARD} element={<Dashboard />} />
+            <Route path={ROUTES.ORDERS} element={<OrderList />} />
+            <Route path={ROUTES.CUSTOMER_ORDERS} element={<CustomerOrders />} />
+            <Route path={ROUTES.ADMIN_ORDERS} element={<Orders />} />
+            <Route path={ROUTES.ADMIN_ORDER_ITEMS} element={<OrderItems />} />
+            <Route path={ROUTES.ADMIN_SERVICES} element={<Service />} />
+            <Route path={ROUTES.ADMIN_GARMENTS} element={<Garment />} />
+            <Route path={ROUTES.ADMIN_CUSTOMERS} element={<Customer />} />
           </Route>
         </Route>
       </Routes>

@@ -35,7 +35,7 @@ const Login = () => {
 
     setTimeout(() => {
       localStorage.clear();
-      window.location.href = "/sign-in";
+      window.location.href = "/";
     }, 5 * 60 * 1000);
 
     navigate("/");

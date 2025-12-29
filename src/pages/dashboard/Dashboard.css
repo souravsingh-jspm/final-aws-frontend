@@ -21,6 +21,8 @@
 }
 
 .stat-card {
+  display: flex;
+  justify-content: space-between;
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 10px;

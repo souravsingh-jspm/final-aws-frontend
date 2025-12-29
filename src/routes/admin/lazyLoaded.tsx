@@ -11,3 +11,5 @@ export const Garment = lazy(() => import("@/pages/garments/Garment"));
 export const Orders = lazy(() => import("@/pages/orders/Orders"));
 
 export const Service = lazy(() => import("@/pages/services/Service"));
+
+export const Dashboard = lazy(() => import("@/pages/dashboard/Dashboard"));

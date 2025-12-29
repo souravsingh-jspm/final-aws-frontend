@@ -1,14 +1,14 @@
-// src/routes/routeList.tsx
-import { Customer, OrderItems, Orders, Service, Garment } from "./lazyLoaded";
+import {
+  Customer,
+  OrderItems,
+  Orders,
+  Service,
+  Garment,
+  Dashboard,
+} from "./lazyLoaded";
 import { ROUTES } from "@/constant/appConstant";
-import Dashboard from "@/pages/dashboard/Dashboard";
 import Home from "@/pages/home/Home";
 import { Navigate } from "react-router";
-
-// const token = localStorage?.getItem("token") || null;
-// const user = localStorage?.getItem("user")
-//   ? JSON?.parse(localStorage?.getItem("user") ?? "")
-//   : {};
 
 export const isUser = true;
 

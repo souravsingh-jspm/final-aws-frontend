@@ -1,10 +1,11 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { isAuthExpired, clearAuth } from "./authStorage";
+import { ROUTES } from "@/constant/appConstant";
 
 const ProtectedRoute = () => {
-  if (isAuthExpired()) {
-    clearAuth();
-    return <Navigate to="/sign-in" replace />;
+  const isAuthenticated = Boolean(localStorage.getItem("token"));
+
+  if (!isAuthenticated) {
+    return <Navigate to={ROUTES.SIGN_IN} replace />;
   }
 
   return <Outlet />;

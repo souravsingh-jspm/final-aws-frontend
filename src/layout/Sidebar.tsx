@@ -13,7 +13,7 @@ type NavItem = {
 const navItems: NavItem[] = [
   {
     name: "Dashboard",
-    path: "/",
+    path: "/admin-dashboard",
   },
   {
     name: "Garments",
@@ -270,7 +270,7 @@ const AppSidebar: React.FC = () => {
           !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
         }`}
       >
-        <Link to="/">
+        <Link to="/admin-dashboard">
           {isExpanded || isHovered || isMobileOpen ? (
             <>
               <img
