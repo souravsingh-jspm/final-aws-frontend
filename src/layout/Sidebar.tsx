@@ -12,6 +12,10 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   {
+    name: "Dashboard",
+    path: "/",
+  },
+  {
     name: "Garments",
     path: "/admin-garment",
   },

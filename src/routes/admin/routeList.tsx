@@ -1,6 +1,7 @@
 // src/routes/routeList.tsx
 import { Customer, OrderItems, Orders, Service, Garment } from "./lazyLoaded";
 import { ROUTES } from "@/constant/appConstant";
+import Dashboard from "@/pages/dashboard/Dashboard";
 import Home from "@/pages/home/Home";
 import { Navigate } from "react-router";
 
@@ -12,6 +13,10 @@ import { Navigate } from "react-router";
 export const isUser = true;
 
 export const adminRoutes = [
+  {
+    path: ROUTES.DASHBOARD,
+    element: <Dashboard />,
+  },
   {
     path: ROUTES.ADMIN_ORDERS,
     element: <Orders />,
