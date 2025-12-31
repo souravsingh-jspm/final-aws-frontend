@@ -46,6 +46,7 @@ const CustomerCrud: React.FC = () => {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [formError, setFormError] = useState<string | null>(null);
 
   /* ---------- Sync list ---------- */
   useEffect(() => {
@@ -61,6 +62,7 @@ const CustomerCrud: React.FC = () => {
     setEmail("");
     setPhone("");
     setAddress("");
+    setFormError(null);
     setModalOpen(true);
   };
 
@@ -70,6 +72,7 @@ const CustomerCrud: React.FC = () => {
     setEmail(c.customer_email);
     setPhone(c.customer_phone);
     setAddress(c.customer_address ?? "");
+    setFormError(null);
     setModalOpen(true);
   };
 
@@ -77,6 +80,19 @@ const CustomerCrud: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+    setFormError(null);
+
+    if (!name.trim()) {
+      setFormError("Customer name is required.");
+      setSubmitting(false);
+      return;
+    }
+
+    if (!phone.trim()) {
+      setFormError("Customer phone is required.");
+      setSubmitting(false);
+      return;
+    }
 
     const payload = {
       customer_name: name.trim(),
@@ -95,6 +111,13 @@ const CustomerCrud: React.FC = () => {
         await createMut.trigger({ body: payload });
       }
       setModalOpen(false);
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Failed to save customer.";
+
+      setFormError(msg);
     } finally {
       setSubmitting(false);
     }
@@ -192,7 +215,18 @@ const CustomerCrud: React.FC = () => {
               disabled={submitting}
             />
           </label>
-
+          {formError && (
+            <div
+              className="form__error"
+              style={{
+                color: "#b91c1c",
+                fontSize: "0.875rem",
+                marginBottom: "0.5rem",
+              }}
+            >
+              {formError}
+            </div>
+          )}
           <div className="form__actions">
             <button type="button" onClick={() => setModalOpen(false)}>
               Cancel
