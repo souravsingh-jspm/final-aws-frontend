@@ -70,8 +70,8 @@ export default function Dashboard() {
             value={data.availability.maha_urgent}
             danger
           />
-          <StatusItem label="Urgent" value={data.availability.urgent} warning />
-          <StatusItem label="Normal" value={data.availability.normal} success />
+          <StatusItem label="Urgent" value={data.availability.urgent} success />
+          <StatusItem label="Normal" value={data.availability.normal} warning />
         </div>
       </section>
     </div>

@@ -59,17 +59,17 @@
 }
 
 .status-item.danger {
-  background: #fee2e2;
-  border-color: #e48b8b;
+  background: #6874dd;
+  border-color: #2342f1;
 }
 
 .status-item.warning {
-  background: #ffedd5;
-  border-color: #fdba74;
+  background: #eceae6;
+  border-color: #ebebeb;
 }
 
 .status-item.success {
-  background: #dcfce7;
+  background: #65cf8a;
   border-color: #86efac;
 }
 
