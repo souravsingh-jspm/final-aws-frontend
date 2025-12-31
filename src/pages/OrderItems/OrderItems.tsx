@@ -1,6 +1,8 @@
 import React, { JSX, useEffect, useState } from "react";
 import DatePicker from "../../components/DatePicker";
 import { BASE_URL } from "../../constant/appConstant";
+import { Combobox } from "@headlessui/react";
+import { Fragment, useMemo } from "react";
 
 type Customer = { customer_id: string; customer_name: string };
 type Garment = { garment_id: string; garment_name: string };
@@ -30,6 +32,17 @@ function unwrapArray<T>(raw: any): T[] {
   if (raw && Array.isArray(raw.items)) return raw.items as T[];
   return [];
 }
+
+function useDebounce<T>(value: T, delay = 300): T {
+  const [debounced, setDebounced] = useState(value);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), delay);
+    return () => clearTimeout(t);
+  }, [value, delay]);
+
+  return debounced;
+}
 function unwrapSingle<T>(raw: any): T | null {
   if (!raw) return null;
   if (
@@ -49,6 +62,8 @@ export default function OrderCreator(): JSX.Element {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [garments, setGarments] = useState<Garment[]>([]);
   const [services, setServices] = useState<Service[]>([]);
+  const [customerQuery, setCustomerQuery] = useState("");
+  const debouncedCustomerQuery = useDebounce(customerQuery, 300);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -70,7 +85,17 @@ export default function OrderCreator(): JSX.Element {
 
   const [submitting, setSubmitting] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const selectedCustomer =
+    customers.find((c) => c.customer_id === customerId) ?? null;
 
+  const filteredCustomers = useMemo(() => {
+    if (!debouncedCustomerQuery) return customers;
+    return customers.filter((c) =>
+      c.customer_name
+        .toLowerCase()
+        .includes(debouncedCustomerQuery.toLowerCase())
+    );
+  }, [customers, debouncedCustomerQuery]);
   useEffect(() => {
     loadAll();
   }, []);
@@ -226,23 +251,56 @@ export default function OrderCreator(): JSX.Element {
       <main className="space-y-6">
         <section className="bg-white border rounded-lg p-4 shadow-sm">
           <h2 className="text-lg font-medium mb-3">Customer</h2>
+
           {loading ? (
             <div className="text-sm text-gray-500">Loading customers…</div>
           ) : (
-            <select
-              className="w-full border rounded-md p-2"
-              value={customerId}
-              onChange={(e) => setCustomerId(e.target.value)}
+            <Combobox
+              value={selectedCustomer}
+              onChange={(c: Customer | null) => {
+                setCustomerId(c ? c.customer_id : "");
+              }}
               disabled={submitting}
-              aria-label="Select customer"
             >
-              <option value="">-- select customer --</option>
-              {customers.map((c) => (
-                <option key={c.customer_id} value={c.customer_id}>
-                  {c.customer_name}
-                </option>
-              ))}
-            </select>
+              <div className="relative">
+                <Combobox.Input
+                  className="w-full border rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  displayValue={(c: Customer) => c?.customer_name ?? ""}
+                  onChange={(e) => setCustomerQuery(e.target.value)}
+                  placeholder="Search customer…"
+                  aria-label="Select customer"
+                />
+
+                <Combobox.Options className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-md border bg-white shadow-lg">
+                  {filteredCustomers.length === 0 && customerQuery !== "" && (
+                    <div className="px-3 py-2 text-sm text-gray-500">
+                      No customers found
+                    </div>
+                  )}
+
+                  {filteredCustomers.map((customer) => (
+                    <Combobox.Option
+                      key={customer.customer_id}
+                      value={customer}
+                      as={Fragment}
+                    >
+                      {({ active, selected }) => (
+                        <li
+                          className={`cursor-pointer px-3 py-2 text-sm ${
+                            active ? "bg-blue-600 text-white" : ""
+                          }`}
+                        >
+                          {customer.customer_name}
+                          {selected && (
+                            <span className="ml-2 text-xs opacity-70">✓</span>
+                          )}
+                        </li>
+                      )}
+                    </Combobox.Option>
+                  ))}
+                </Combobox.Options>
+              </div>
+            </Combobox>
           )}
         </section>
 

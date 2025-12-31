@@ -50,7 +50,7 @@ export default function Dashboard() {
       </div>
 
       {/* ORDERS STATUS */}
-      <section className="dashboard__section">
+      {/* <section className="dashboard__section">
         <h3>Order Status</h3>
         <div className="dashboard__grid">
           <StatusItem label="Pending" value={data.orders.pending} />
@@ -59,7 +59,7 @@ export default function Dashboard() {
           <StatusItem label="Delivered" value={data.orders.delivered} />
           <StatusItem label="Cancelled" value={data.orders.cancelled} />
         </div>
-      </section>
+      </section> */}
 
       {/* AVAILABILITY */}
       <section className="dashboard__section">

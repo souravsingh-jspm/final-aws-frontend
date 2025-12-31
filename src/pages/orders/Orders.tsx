@@ -249,8 +249,9 @@ export default function OrderList(): JSX.Element {
                 <td>{formatDate(o.return_expected_by)}</td>
                 <td>{o.availability_status ?? "-"}</td>
                 <td>{o.status ?? "-"}</td>
-                <td>
+                <td className="customer-order-action">
                   <button
+                    className=""
                     onClick={() =>
                       (window.location.href = `/customer-orders/${o.customer_id}`)
                     }
@@ -258,6 +259,7 @@ export default function OrderList(): JSX.Element {
                     View
                   </button>
                   <button
+                    className=""
                     disabled={o.order_id.startsWith("customer-")}
                     onClick={() => handleDelete(o.order_id)}
                   >

@@ -208,6 +208,12 @@
   padding: 16px;
 }
 
+.customer-order-action {
+  display: flex;
+  justify-content: space-evenly;
+  padding: 0px 10px;
+}
+
 /* ================= DESKTOP ================= */
 
 @media (min-width: 768px) {

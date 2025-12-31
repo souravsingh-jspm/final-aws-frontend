@@ -127,7 +127,6 @@ const CustomerCrud: React.FC = () => {
           <thead>
             <tr>
               <th>Name</th>
-              <th>Email</th>
               <th>Phone</th>
               <th>Address</th>
               <th>Actions</th>
@@ -137,7 +136,6 @@ const CustomerCrud: React.FC = () => {
             {customers.map((c) => (
               <tr key={c.customer_id}>
                 <td>{c.customer_name}</td>
-                <td>{c.customer_email}</td>
                 <td>{c.customer_phone}</td>
                 <td>{c.customer_address ?? "-"}</td>
                 <td>
@@ -173,15 +171,6 @@ const CustomerCrud: React.FC = () => {
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              disabled={submitting}
-            />
-          </label>
-
-          <label className="form__field">
-            Email
-            <input
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
               disabled={submitting}
             />
           </label>
