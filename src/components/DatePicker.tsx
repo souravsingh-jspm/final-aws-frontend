@@ -5,6 +5,7 @@ type DatePickerProps = {
   onChange: (d: Date | null) => void;
   minDate?: Date | null;
   maxDate?: Date | null;
+  allowPastDates?: boolean;
   placeholder?: string;
   inputId?: string;
   locale?: string;
@@ -43,6 +44,7 @@ export default function DatePicker({
   onChange,
   minDate = null,
   maxDate = null,
+  allowPastDates = false, // ✅ FIX
   placeholder = "Select date",
   inputId = "datepicker-input",
   locale,
@@ -50,8 +52,11 @@ export default function DatePicker({
 }: DatePickerProps) {
   const today = startOfDay(new Date());
 
-  // 🔒 Enforce "no past dates"
-  const effectiveMinDate = minDate
+  const effectiveMinDate = allowPastDates
+    ? minDate
+      ? startOfDay(minDate)
+      : null
+    : minDate
     ? startOfDay(minDate) > today
       ? startOfDay(minDate)
       : today
@@ -165,7 +170,9 @@ export default function DatePicker({
                 viewDate.getMonth(),
                 d
               );
-              const disabled = dateObj < effectiveMinDate;
+              const disabled = effectiveMinDate
+                ? dateObj < effectiveMinDate
+                : false;
               const selected = internalDate && sameDay(internalDate, dateObj);
 
               return (

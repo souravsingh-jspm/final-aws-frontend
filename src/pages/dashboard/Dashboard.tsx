@@ -1,3 +1,4 @@
+import DatePicker from "../../components/DatePicker";
 import { BASE_URL } from "../../constant/appConstant";
 import "./Dashboard.css";
 import { useEffect, useState } from "react";
@@ -36,41 +37,41 @@ type TodayOrder = {
 export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+
   const [todayOrders, setTodayOrders] = useState<TodayOrder[]>([]);
   const [todayLoading, setTodayLoading] = useState(false);
+
+  // NEW: selected date state
+  const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+
   const downloadTodayOrdersPdf = () => {
     const doc = new jsPDF();
 
     doc.setFontSize(14);
-    doc.text("Today's Orders", 14, 15);
 
     autoTable(doc, {
       startY: 20,
-      head: [
-        [
-          "Order ID",
-          "Customer",
-          "Phone",
-          "Quantity",
-          "Availability",
-          "Status",
-          "Created At",
-        ],
-      ],
-      body: todayOrders.map((o) => [
-        o.order_id,
+      head: [["Sr.no", "Name", "Phone", "Quantity", "Created"]],
+      body: todayOrders.map((o, idx) => [
+        idx + 1,
         o.customer_name,
         o.customer_phone,
         o.quantity,
-        o.availability_status,
-        o.status,
-        new Date(o.order_created).toLocaleString(),
+        new Date(o.order_created).toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "2-digit",
+        }),
       ]),
     });
-
-    doc.save(`today-orders-${new Date().toISOString().slice(0, 10)}.pdf`);
+    const dateLabel = selectedDate
+      ? selectedDate.toISOString().slice(0, 10)
+      : "";
+    doc.text(`Order Summary for ${dateLabel}`, 14, 15);
+    doc.save(`New Shivali Washing Company-${dateLabel}.pdf`);
   };
 
+  // Dashboard KPIs
   useEffect(() => {
     fetch(`${BASE_URL}dashboard/dashboard`)
       .then((res) => res.json())
@@ -79,16 +80,22 @@ export default function Dashboard() {
         setLoading(false);
       });
   }, []);
+
+  // Fetch orders by selected date
   useEffect(() => {
+    if (!selectedDate) return;
+
+    const dateStr = selectedDate.toISOString().slice(0, 10);
+
     setTodayLoading(true);
 
-    fetch(`${BASE_URL}order/today-order`)
+    fetch(`${BASE_URL}order/today-order?date=${dateStr}`)
       .then((res) => res.json())
       .then((res) => {
         setTodayOrders(Array.isArray(res.data) ? res.data : []);
       })
       .finally(() => setTodayLoading(false));
-  }, []);
+  }, [selectedDate]);
 
   if (loading) return <div className="dashboard__loading">Loading...</div>;
   if (!data) return null;
@@ -105,18 +112,6 @@ export default function Dashboard() {
         <StatCard title="Total Orders" value={data.orders.total} />
       </div>
 
-      {/* ORDERS STATUS */}
-      {/* <section className="dashboard__section">
-        <h3>Order Status</h3>
-        <div className="dashboard__grid">
-          <StatusItem label="Pending" value={data.orders.pending} />
-          <StatusItem label="In Progress" value={data.orders.in_progress} />
-          <StatusItem label="Completed" value={data.orders.completed} />
-          <StatusItem label="Delivered" value={data.orders.delivered} />
-          <StatusItem label="Cancelled" value={data.orders.cancelled} />
-        </div>
-      </section> */}
-
       {/* AVAILABILITY */}
       <section className="dashboard__section">
         <h3>Availability</h3>
@@ -131,37 +126,56 @@ export default function Dashboard() {
         </div>
       </section>
 
+      {/* ORDERS BY DATE */}
       <section className="dashboard__section">
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: "0.5rem",
+            marginBottom: "0.75rem",
+            gap: "1rem",
           }}
         >
-          <h3>Today's Orders</h3>
+          <h3>Orders by Date</h3>
 
-          <button
-            onClick={downloadTodayOrdersPdf}
-            disabled={todayOrders.length === 0}
-            style={{
-              padding: "6px 12px",
-              borderRadius: "6px",
-              border: "1px solid #ddd",
-              background: "#2563eb",
-              color: "#fff",
-              cursor: "pointer",
-            }}
-          >
-            Download PDF
-          </button>
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <DatePicker
+              value={selectedDate}
+              onChange={(date) => setSelectedDate(date)}
+              allowPastDates
+              placeholder="Select date"
+              formatDate={(d) =>
+                d.toLocaleDateString("en-GB", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })
+              }
+            />
+
+            <button
+              onClick={downloadTodayOrdersPdf}
+              disabled={todayOrders.length === 0}
+              style={{
+                padding: "6px 12px",
+                borderRadius: "6px",
+                border: "1px solid #ddd",
+                background: "#2563eb",
+                color: "#fff",
+                cursor: "pointer",
+                maxHeight: "40px",
+              }}
+            >
+              Download
+            </button>
+          </div>
         </div>
 
         {todayLoading ? (
-          <div>Loading today’s orders…</div>
+          <div>Loading orders…</div>
         ) : todayOrders.length === 0 ? (
-          <div>No orders today.</div>
+          <div>No orders found.</div>
         ) : (
           <div style={{ overflowX: "auto" }}>
             <table className="customer__table">
