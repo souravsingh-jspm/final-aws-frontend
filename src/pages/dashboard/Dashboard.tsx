@@ -53,7 +53,6 @@ export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
 
   const [garments, setGarments] = useState<Garment[]>([]);
-const [garmentsLoading, setGarmentsLoading] = useState(false);
 
 const getGarmentQty = (
   selected: Record<string, number>,
@@ -69,7 +68,6 @@ const downloadTodayOrdersPdf = () => {
     unit: "mm",
     format: "a4",
   });
-const garmentHeaders = garments.map(() => "");
 
   const dateLabel = selectedDate
     ? selectedDate.toISOString().slice(0, 10)
@@ -182,14 +180,12 @@ autoTable(doc, {
   }, [selectedDate]);
 
   useEffect(() => {
-  setGarmentsLoading(true);
 
   fetch(`${BASE_URL}garment/garment`)
     .then((res) => res.json())
     .then((res) => {
       setGarments(Array.isArray(res.data) ? res.data : []);
     })
-    .finally(() => setGarmentsLoading(false));
 }, []);
 
 
