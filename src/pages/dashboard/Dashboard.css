@@ -97,18 +97,6 @@
   text-align: center;
 }
 
-/* Sticky left columns */
-.customer__table .sticky-left {
-  position: sticky;
-  left: 0;
-  z-index: 3;
-}
-
-.customer__table .sticky-left-2 {
-  position: sticky;
-  z-index: 3;
-}
-
 /* Vertical garment headers */
 .vertical-header {
   height: 140px;
@@ -131,13 +119,6 @@
   text-align: center;
 }
 
-/* Optional: subtle shadow for sticky columns */
-.customer__table td.sticky-left,
-.customer__table td.sticky-left-2,
-.customer__table th.sticky-left,
-.customer__table th.sticky-left-2 {
-  box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05);
-}
 
 /* DESKTOP */
 @media (min-width: 768px) {
