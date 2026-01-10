@@ -41,6 +41,17 @@ type Garment = {
   garment_name: string;
 };
 
+const GARMENT_PRIORITY = [
+  "Shirt",
+  "Pant",
+  "Paijama",
+  "Ladies",
+  "Sarees",
+  "Blouse",
+  "Coat",
+  "topi",
+];
+
 
 export default function Dashboard() {
   const [data, setData] = useState<DashboardData | null>(null);
@@ -49,16 +60,46 @@ export default function Dashboard() {
   const [todayOrders, setTodayOrders] = useState<TodayOrder[]>([]);
   const [todayLoading, setTodayLoading] = useState(false);
 
-  // NEW: selected date state
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
 
   const [garments, setGarments] = useState<Garment[]>([]);
 
+function formatDateForApi(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function sortGarmentsByPriority(garments: Garment[]): Garment[] {
+  const priorityMap = new Map(
+    GARMENT_PRIORITY.map((name, index) => [name.toLowerCase(), index])
+  );
+
+  return [...garments].sort((a, b) => {
+    const aIndex = priorityMap.get(a.garment_name.toLowerCase());
+    const bIndex = priorityMap.get(b.garment_name.toLowerCase());
+
+    // Both are in priority list → sort by defined order
+    if (aIndex !== undefined && bIndex !== undefined) {
+      return aIndex - bIndex;
+    }
+
+    // Only A is priority → A comes first
+    if (aIndex !== undefined) return -1;
+
+    // Only B is priority → B comes first
+    if (bIndex !== undefined) return 1;
+
+    // Neither is priority → keep stable alphabetical order
+    return a.garment_name.localeCompare(b.garment_name);
+  });
+}
 const getGarmentQty = (
   selected: Record<string, number>,
   garmentName: string
 ): number => {
-  return selected?.[garmentName] ?? 0;
+  return selected?.[garmentName] ?? " ";
 };
 
 
@@ -69,9 +110,10 @@ const downloadTodayOrdersPdf = () => {
     format: "a4",
   });
 
-  const dateLabel = selectedDate
-    ? selectedDate.toISOString().slice(0, 10)
-    : "";
+const dateLabel = selectedDate
+  ? formatDateForApi(selectedDate)
+  : "";
+
 
   doc.setFontSize(14);
   doc.text(`Order Summary for ${dateLabel}`, 14, 12);
@@ -84,8 +126,8 @@ autoTable(doc, {
     cellPadding: 2,
     halign: "center",
     valign: "middle",
-    lineWidth: 0.2,          // ✅ BORDER WIDTH
-    lineColor: [0, 0, 0],    // ✅ BORDER COLOR (black)
+    lineWidth: 0.2,         
+    lineColor: [0, 0, 0], 
   },
 
   headStyles: {
@@ -93,7 +135,7 @@ autoTable(doc, {
     textColor: 0,
     fontStyle: "bold",
     minCellHeight: 45,
-    lineWidth: 0.3,          // slightly thicker header border
+    lineWidth: 0.3,        
   },
 
   bodyStyles: {
@@ -103,7 +145,7 @@ autoTable(doc, {
   head: [
     [
       "Customer",
-      ...garments.map(() => ""), // empty placeholders
+      ...garments.map(() => ""),
       "Total",
       "Return By",
       "Created",
@@ -164,28 +206,31 @@ autoTable(doc, {
   }, []);
 
   // Fetch orders by selected date
-  useEffect(() => {
-    if (!selectedDate) return;
+ useEffect(() => {
+  if (!selectedDate) return;
 
-    const dateStr = selectedDate.toISOString().slice(0, 10);
+  const dateStr = formatDateForApi(selectedDate);
 
-    setTodayLoading(true);
+  setTodayLoading(true);
 
-    fetch(`${BASE_URL}order/today-order?date=${dateStr}`)
-      .then((res) => res.json())
-      .then((res) => {
-        setTodayOrders(Array.isArray(res.data) ? res.data : []);
-      })
-      .finally(() => setTodayLoading(false));
-  }, [selectedDate]);
+  fetch(`${BASE_URL}order/today-order?date=${dateStr}`)
+    .then((res) => res.json())
+    .then((res) => {
+      setTodayOrders(Array.isArray(res.data) ? res.data : []);
+    })
+    .finally(() => setTodayLoading(false));
+}, [selectedDate]);
+
 
   useEffect(() => {
 
   fetch(`${BASE_URL}garment/garment`)
     .then((res) => res.json())
     .then((res) => {
-      setGarments(Array.isArray(res.data) ? res.data : []);
-    })
+      const sorted = sortGarmentsByPriority(
+        Array.isArray(res.data) ? res.data : []
+);
+setGarments(sorted);    })
 }, []);
 
 

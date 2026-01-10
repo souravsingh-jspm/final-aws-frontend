@@ -3,6 +3,7 @@ import DatePicker from "../../components/DatePicker";
 import { BASE_URL } from "../../constant/appConstant";
 import { Combobox } from "@headlessui/react";
 import { Fragment, useMemo } from "react";
+import CustomButton from "@/components/buttons/CustomButton";
 
 type Customer = { customer_id: string; customer_name: string };
 type Garment = { garment_id: string; garment_name: string };
@@ -447,15 +448,12 @@ export default function OrderCreator(): JSX.Element {
                     </td>
 
                     <td className="px-3 py-2 text-right">
-                      <button
-                        type="button"
+                    <CustomButton
+                        variant="danger"
                         onClick={() => removeRow(row.id)}
-                        className="px-3 py-1 text-sm text-red-600 border rounded-md bg-white hover:bg-gray-50"
-                        disabled={submitting}
-                        aria-label={`Remove item ${idx + 1}`}
                       >
                         Remove
-                      </button>
+                    </CustomButton>
                     </td>
                   </tr>
                 ))}

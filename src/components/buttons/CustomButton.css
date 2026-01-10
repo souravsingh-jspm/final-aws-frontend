@@ -1,0 +1,64 @@
+.btn {
+  padding: 0.4rem 0.85rem;
+  font-size: 0.875rem;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+/* SUCCESS – Light Green */
+.btn--success {
+  background-color: #dcfce7;
+  color: #166534;
+  border-color: #86efac;
+}
+
+.btn--success:hover {
+  background-color: #bbf7d0;
+  border-color: #4ade80;
+}
+
+.btn--primary:hover {
+  background-color: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+.btn--primary:active {
+  background-color: #1e40af;
+  border-color: #1e40af;
+}
+
+.btn--success:active {
+  background-color: #86efac;
+}
+
+/* DANGER – Red */
+.btn--danger {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.btn--danger:hover {
+  background-color: #fecaca;
+}
+
+/* PRIMARY */
+.btn--primary {
+  background-color: #5985e2; /* blue */
+  color: #ffffff;
+  border-color: #4a7ce7;
+}
+
+/* GHOST */
+.btn--ghost {
+  background-color: transparent;
+  border-color: #d1d5db;
+  color: #374151;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

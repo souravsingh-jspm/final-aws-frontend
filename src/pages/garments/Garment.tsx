@@ -8,6 +8,8 @@ import {
   useDeleteGarmentById,
 } from "../../services/Garment";
 import type { GarmentType } from "@/interface/garment.interface";
+import CustomButton from "@/components/buttons/CustomButton";
+import TextInput from "@/components/input/Input";
 
 const SWR_KEY = "/garment/garment";
 
@@ -45,7 +47,6 @@ const Garment: React.FC = () => {
       garment_name: nameTrim,
     };
 
-    // optimistic insert
     mutate(
       SWR_KEY,
       (current: any) => ({
@@ -65,7 +66,6 @@ const Garment: React.FC = () => {
         throw new Error("Invalid response from server");
       }
 
-      // replace temp with real record
       mutate(
         SWR_KEY,
         (current: any) => ({
@@ -117,7 +117,6 @@ const Garment: React.FC = () => {
       garment_name: nameTrim,
     };
 
-    // optimistic update
     mutate(
       SWR_KEY,
       (current: any) => ({
@@ -138,20 +137,18 @@ const Garment: React.FC = () => {
       setEditingId(null);
       setGarmentName("");
     } catch (err: any) {
-      await mutate(SWR_KEY); // rollback
+      await mutate(SWR_KEY); 
       setError(err?.message || "Failed to update garment");
     } finally {
       setSubmitting(false);
     }
   }
 
-  /* ---------------- DELETE ---------------- */
   async function handleDelete(id: string) {
     if (!confirm("Delete garment?")) return;
 
     const previous = data;
 
-    // optimistic remove
     mutate(
       SWR_KEY,
       (current: any) => ({
@@ -169,71 +166,119 @@ const Garment: React.FC = () => {
     }
   }
 
-  /* ---------------- UI ---------------- */
   return (
     <div className="garments">
-      <h2>Garments</h2>
-      <p>Manage garment types</p>
+      <div >
+      <h2 className="garment-heading">Garments</h2>
+      <p className="garment-paragraph">Manage garment types</p>
+        <form
+          className="garment-form bg-gray-50 border border-gray-200 rounded-xl p-6"
+          onSubmit={editingId ? handleUpdate : handleAdd}
+        >
+          <div className="flex flex-col gap-4">
+            <TextInput
+              label="Garment Name"
+              value={garmentName}
+              onChange={(e) => setGarmentName(e.target.value)}
+              placeholder="Enter garment name"
+              disabled={submitting}
+              required
+              helperText="Example: Shirt, Sweater, Saree"
+            />
 
-      <form onSubmit={editingId ? handleUpdate : handleAdd}>
-        <input
-          value={garmentName}
-          onChange={(e) => setGarmentName(e.target.value)}
-          placeholder="Enter garment name"
-          disabled={submitting}
-        />
-        <button type="submit" disabled={submitting}>
-          {editingId ? "Update" : "Add"}
-        </button>
-        {editingId && (
-          <button
-            type="button"
-            onClick={() => {
-              setEditingId(null);
-              setGarmentName("");
-              setError(null);
-            }}
-            disabled={submitting}
-          >
-            Cancel
-          </button>
-        )}
-      </form>
+            <div className="flex items-center gap-3">
+              <button
+                type="submit"
+                disabled={submitting || !garmentName.trim()}
+                className="px-5 h-11 rounded-lg bg-blue-600 text-white text-sm font-medium
+                          hover:bg-blue-700 transition
+                          disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {editingId ? "Update Garment" : "Add Garment"}
+              </button>
+
+              {editingId && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingId(null);
+                    setGarmentName("");
+                    setError(null);
+                  }}
+                  disabled={submitting}
+                  className="px-4 h-11 rounded-lg text-sm font-medium text-gray-600
+                            hover:bg-gray-200 transition
+                            disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+          </div>
+        </form>
+      </div>
 
       {error && <div className="error">{error}</div>}
 
-      {isLoading ? (
-        <div>Loading…</div>
-      ) : garments.length === 0 ? (
-        <div>No garments found.</div>
-      ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>Garment</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {garments.map((g: any) => (
-              <tr key={g.garment_id}>
-                <td>{g.garment_name}</td>
-                <td>
-                  <button onClick={() => startEdit(g)} disabled={submitting}>
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(g.garment_id)}
+ <div className="mt-6">
+  {isLoading ? (
+    <div className="flex items-center justify-center py-10 text-sm text-gray-500">
+      Loading garments…
+    </div>
+  ) : garments.length === 0 ? (
+    <div className="flex items-center justify-center py-10 text-sm text-gray-500 border border-dashed rounded-lg">
+      No garments found. Add one to get started.
+    </div>
+  ) : (
+    <div className="overflow-hidden border border-gray-200 rounded-xl">
+      <table className="w-full border-collapse">
+        <thead className="bg-gray-100">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+              Garment
+            </th>
+            <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase">
+              Actions
+            </th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {garments.map((g: any) => (
+            <tr
+              key={g.garment_id}
+              className="border-t hover:bg-gray-50 transition"
+            >
+              <td className="px-6 py-4 text-sm text-gray-800">
+                {g.garment_name}
+              </td>
+
+              <td className="px-6 py-4">
+                <div className="flex justify-end gap-2">
+                  <CustomButton
+                    variant="success"
+                    onClick={() => startEdit(g)}
                     disabled={submitting}
                   >
+                    Edit
+                  </CustomButton>
+
+                  <CustomButton
+                    variant="danger"
+                    onClick={() => handleDelete(g.garment_id)}
+                  >
                     Delete
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+                  </CustomButton>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+</div>
+
     </div>
   );
 };

@@ -1,4 +1,3 @@
-import "./Customer.css";
 import React, { useEffect, useState } from "react";
 import {
   useGetAllCustomers,
@@ -7,8 +6,9 @@ import {
   useDeleteCustomer,
   Customer,
 } from "@/services/Customer";
+import CustomButton from "@/components/buttons/CustomButton";
 
-/* ---------- Modal ---------- */
+/* -------------------- Modal -------------------- */
 const Modal: React.FC<{
   title: string;
   visible: boolean;
@@ -16,21 +16,26 @@ const Modal: React.FC<{
   children: React.ReactNode;
 }> = ({ title, visible, onClose, children }) => {
   if (!visible) return null;
+
   return (
-    <div className="modal__overlay">
-      <div className="modal__content">
-        <div className="modal__header">
-          <strong>{title}</strong>
-          <button className="modal__close" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="w-full max-w-md mx-4 bg-white rounded-xl shadow-lg">
+        <div className="flex items-center justify-between px-6 py-4 border-b">
+          <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+          <button
+            onClick={onClose}
+            className="text-xl text-gray-400 hover:text-gray-600"
+          >
             ×
           </button>
         </div>
-        {children}
+        <div className="p-6">{children}</div>
       </div>
     </div>
   );
 };
 
+/* -------------------- Customer CRUD -------------------- */
 const CustomerCrud: React.FC = () => {
   const { data, isLoading } = useGetAllCustomers();
   const createMut = useCreateCustomer();
@@ -43,23 +48,28 @@ const CustomerCrud: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
 
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  const [email] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
 
-  /* ---------- Sync list ---------- */
+  const [searchTerm, setSearchTerm] = useState("");
+  const [hasSearched, setHasSearched] = useState(false);
+
+  const filteredCustomers = customers.filter((c) =>
+    c.customer_name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   useEffect(() => {
-    if (data?.data) {
-      setCustomers(Array.isArray(data.data) ? data.data : []);
+    if (data?.data && Array.isArray(data.data)) {
+      setCustomers(data.data);
     }
   }, [data]);
 
-  /* ---------- Modal helpers ---------- */
+  /* -------------------- Handlers -------------------- */
   const openCreate = () => {
     setEditing(null);
     setName("");
-    setEmail("");
     setPhone("");
     setAddress("");
     setFormError(null);
@@ -69,34 +79,26 @@ const CustomerCrud: React.FC = () => {
   const openEdit = (c: Customer) => {
     setEditing(c);
     setName(c.customer_name);
-    setEmail(c.customer_email);
     setPhone(c.customer_phone);
     setAddress(c.customer_address ?? "");
     setFormError(null);
     setModalOpen(true);
   };
 
-  /* ---------- Submit ---------- */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setFormError(null);
 
-    if (!name.trim()) {
-      setFormError("Customer name is required.");
-      setSubmitting(false);
-      return;
-    }
-
-    if (!phone.trim()) {
-      setFormError("Customer phone is required.");
+    if (!name.trim() || !phone.trim()) {
+      setFormError("Name and phone are required.");
       setSubmitting(false);
       return;
     }
 
     const payload = {
       customer_name: name.trim(),
-      customer_email: email.trim(),
+      customer_email: email,
       customer_phone: phone.trim(),
       customer_address: address.trim() || null,
     };
@@ -112,127 +114,229 @@ const CustomerCrud: React.FC = () => {
       }
       setModalOpen(false);
     } catch (err: any) {
-      const msg =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Failed to save customer.";
-
-      setFormError(msg);
+      setFormError(
+        err?.response?.data?.message || "Failed to save customer."
+      );
     } finally {
       setSubmitting(false);
     }
   };
 
-  /* ---------- Delete ---------- */
   const handleDelete = async (c: Customer) => {
     if (!confirm(`Delete customer "${c.customer_name}"?`)) return;
     await deleteMut.trigger(c.customer_id);
   };
 
+  /* -------------------- Render -------------------- */
   return (
-    <div className="customer">
-      <header className="customer__header">
+    <div className="p-6 space-y-6">
+      {/* Search */}
+      <input
+        type="text"
+        placeholder="Search customer by name..."
+        value={searchTerm}
+        onChange={(e) => {
+          setSearchTerm(e.target.value);
+          setHasSearched(true);
+        }}
+        className="w-full sm:max-w-sm h-11 px-4 rounded-lg border border-gray-300
+                   focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      />
+
+      {/* Header */}
+      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="customer__title">Customers</h2>
-          <div>Manage customers</div>
+          <h2 className="text-2xl font-semibold text-gray-800">Customers</h2>
+          <p className="text-sm text-gray-500">Manage customers</p>
         </div>
-        <button className="customer__add-btn" onClick={openCreate}>
+
+        <button
+          onClick={openCreate}
+          className="h-11 px-5 rounded-lg bg-blue-600 text-white text-sm font-medium
+                     hover:bg-blue-700 transition"
+        >
           Add Customer
         </button>
       </header>
 
+      {/* Content */}
       {isLoading ? (
-        <div>Loading...</div>
-      ) : customers.length === 0 ? (
-        <div>No customers found.</div>
+        <div className="py-10 text-center text-sm text-gray-500">
+          Loading customers...
+        </div>
+      ) : filteredCustomers.length === 0 ? (
+        <div className="py-10 text-center text-sm text-gray-500 border border-dashed rounded-lg">
+          {hasSearched ? "Customer does not exist." : "No customers found."}
+        </div>
       ) : (
-        <table className="customer__table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Phone</th>
-              <th>Address</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {customers.map((c) => (
-              <tr key={c.customer_id}>
-                <td>{c.customer_name}</td>
-                <td>{c.customer_phone}</td>
-                <td>{c.customer_address ?? "-"}</td>
-                <td>
-                  <div className="customer__actions">
-                    <button
-                      className="customer__action-btn customer__action-btn--edit"
-                      onClick={() => openEdit(c)}
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="customer__action-btn customer__action-btn--delete"
-                      onClick={() => handleDelete(c)}
-                    >
-                      Delete
-                    </button>
+        <>
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-hidden border border-gray-200 rounded-xl">
+            <table className="w-full">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                    Name
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                    Phone
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">
+                    Address
+                  </th>
+                  <th className="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase">
+                    Actions
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredCustomers.map((c) => (
+                  <tr
+                    key={c.customer_id}
+                    className="border-t hover:bg-gray-50 transition"
+                  >
+                    <td className="px-6 py-4 text-sm text-gray-800">
+                      {c.customer_name}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {c.customer_phone}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {c.customer_address ?? "-"}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex justify-center gap-2">
+                        <CustomButton
+                          variant="success"
+                          onClick={() => openEdit(c)}
+                        >
+                          Edit
+                        </CustomButton>
+                        <CustomButton
+                          variant="danger"
+                          onClick={() => handleDelete(c)}
+                        >
+                          Delete
+                        </CustomButton>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="md:hidden space-y-3">
+            {filteredCustomers.map((c) => (
+              <div
+                key={c.customer_id}
+                className="border border-gray-200 rounded-lg p-4 space-y-3 bg-white"
+              >
+                <div>
+                  <div className="text-sm font-semibold text-gray-800">
+                    <strong>Name: </strong> {c.customer_name}
                   </div>
-                </td>
-              </tr>
+                  <div className="text-xs text-gray-500">
+                    <strong>Phone: </strong> {c.customer_phone}
+                  </div>
+                  <div className="text-xs text-gray-500">
+                   <strong>Address: </strong> {c.customer_address ?? "-"}
+                  </div>
+                </div>
+
+                <div className="flex gap-2">
+                  <CustomButton
+                    variant="success"
+                    className="flex-1"
+                    onClick={() => openEdit(c)}
+                  >
+                    Edit
+                  </CustomButton>
+                  <CustomButton
+                    variant="danger"
+                    className="flex-1"
+                    onClick={() => handleDelete(c)}
+                  >
+                    Delete
+                  </CustomButton>
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        </>
       )}
 
+      {/* Modal */}
       <Modal
         title={editing ? "Edit Customer" : "Add Customer"}
         visible={modalOpen}
         onClose={() => setModalOpen(false)}
       >
-        <form className="form" onSubmit={handleSubmit}>
-          <label className="form__field">
-            Name *
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="text-sm font-medium text-gray-700">
+              Name *
+            </label>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
               disabled={submitting}
+              className="w-full h-11 px-4 rounded-lg border border-gray-300
+                         focus:ring-2 focus:ring-blue-500"
             />
-          </label>
+          </div>
 
-          <label className="form__field">
-            Phone *
+          <div>
+            <label className="text-sm font-medium text-gray-700">
+              Phone *
+            </label>
             <input
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               disabled={submitting}
+              className="w-full h-11 px-4 rounded-lg border border-gray-300
+                         focus:ring-2 focus:ring-blue-500"
             />
-          </label>
+          </div>
 
-          <label className="form__field">
-            Address
+          <div>
+            <label className="text-sm font-medium text-gray-700">
+              Address
+            </label>
             <input
               value={address}
               onChange={(e) => setAddress(e.target.value)}
               disabled={submitting}
+              className="w-full h-11 px-4 rounded-lg border border-gray-300
+                         focus:ring-2 focus:ring-blue-500"
             />
-          </label>
+          </div>
+
           {formError && (
-            <div
-              className="form__error"
-              style={{
-                color: "#b91c1c",
-                fontSize: "0.875rem",
-                marginBottom: "0.5rem",
-              }}
-            >
-              {formError}
-            </div>
+            <div className="text-sm text-red-600">{formError}</div>
           )}
-          <div className="form__actions">
-            <button type="button" onClick={() => setModalOpen(false)}>
+
+          <div className="flex justify-end gap-3 pt-4">
+            <button
+              type="button"
+              onClick={() => setModalOpen(false)}
+              className="h-11 px-4 rounded-lg text-sm text-gray-600 hover:bg-gray-100"
+            >
               Cancel
             </button>
-            <button type="submit" disabled={submitting}>
-              {submitting ? "Saving..." : editing ? "Update" : "Create"}
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="h-11 px-5 rounded-lg bg-blue-600 text-white text-sm font-medium
+                         hover:bg-blue-700 transition disabled:opacity-50"
+            >
+              {submitting
+                ? "Saving..."
+                : editing
+                ? "Update Customer"
+                : "Create Customer"}
             </button>
           </div>
         </form>

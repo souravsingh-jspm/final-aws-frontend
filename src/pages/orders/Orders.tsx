@@ -1,71 +1,32 @@
-import "./Orders.css";
 import React, { useEffect, useState, useRef, JSX } from "react";
 import { BASE_URL } from "../../constant/appConstant";
-
-/* =======================
-   Types
-======================= */
-
-type Customer = {
-  customer_id: string;
-  customer_name?: string;
-  customer_phone?: string;
-  customer_email?: string;
-};
-
-type Garment = {
-  garment_id: string;
-  garment_name?: string;
-};
-
-type Service = {
-  service_id: string;
-  service_name?: string;
-};
+import CustomButton from "@/components/buttons/CustomButton";
 
 type OrderItem = {
   id: string;
-  service_id?: string;
-  garment_id?: string;
-  quantity?: number;
-  availability_status?: string;
-  return_expected_by?: string;
-  createdAt?: string;
-  updatedAt?: string;
-  service?: Service | null;
-  garment?: Garment | null;
 };
 
 type Order = {
   order_id: string;
   customer_id: string;
-  customer?: Customer | null;
-  return_expected_by?: string;
-  createdAt?: string;
-  updatedAt?: string;
+  customer_name?: string;
+  customer_phone?: string;
+  quantity?: number | string;
   status?: string;
   availability_status?: string;
-  quantity?: number | string;
-  customer_phone?: string;
-  customer_name?: string;
+  return_expected_by?: string;
   items?: OrderItem[] | null;
 };
-
-/* =======================
-   Constants
-======================= */
 
 const ORDER_BASE = BASE_URL + "order/order";
 
 /* =======================
-   Helpers
+   Helpers (unchanged)
 ======================= */
-
 function unwrapArray<T>(raw: any): T[] {
   if (!raw) return [];
   if (Array.isArray(raw)) return raw;
   if (raw?.data && Array.isArray(raw.data)) return raw.data;
-  if (raw?.items && Array.isArray(raw.items)) return raw.items;
   return [];
 }
 
@@ -86,7 +47,6 @@ function mapCustomersToOrders(customers: any[]): Order[] {
 /* =======================
    Modal
 ======================= */
-
 const Modal: React.FC<{
   visible: boolean;
   title?: string;
@@ -94,34 +54,37 @@ const Modal: React.FC<{
   children: React.ReactNode;
 }> = ({ visible, title, onClose, children }) => {
   if (!visible) return null;
+
   return (
-    <div className="modal__overlay" role="dialog" aria-modal="true">
-      <div className="modal__content">
-        <div className="modal__header">
-          <strong>{title}</strong>
-          <button className="modal__close" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <div className="w-full max-w-md mx-4 bg-white rounded-xl shadow-lg">
+        <div className="flex items-center justify-between px-6 py-4 border-b">
+          <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+          <button
+            onClick={onClose}
+            className="text-xl text-gray-400 hover:text-gray-600"
+          >
             ×
           </button>
         </div>
-        <div className="modal__body">{children}</div>
+        <div className="p-6">{children}</div>
       </div>
     </div>
   );
 };
 
 /* =======================
-   Component
+   Orders Page
 ======================= */
-
 export default function OrderList(): JSX.Element {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [detailsOrder, setDetailsOrder] = useState<Order | null>(null);
-
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+
   const debounceRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -134,9 +97,6 @@ export default function OrderList(): JSX.Element {
       () => setDebouncedSearch(search.trim()),
       400
     );
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
   }, [search]);
 
   useEffect(() => {
@@ -159,11 +119,7 @@ export default function OrderList(): JSX.Element {
       const raw = await res.json().catch(() => null);
       const list = unwrapArray<any>(raw);
 
-      if (isSearch) {
-        setOrders(mapCustomersToOrders(list));
-      } else {
-        setOrders(list as Order[]);
-      }
+      setOrders(isSearch ? mapCustomersToOrders(list) : (list as Order[]));
     } catch (err: any) {
       setError(err?.message || "Failed to fetch orders");
       setOrders([]);
@@ -187,30 +143,31 @@ export default function OrderList(): JSX.Element {
   function formatDate(iso?: string | null) {
     if (!iso) return "-";
     const d = new Date(iso);
-    return Number.isNaN(d.getTime()) ? "-" : d.toLocaleDateString("en-US");
+    return Number.isNaN(d.getTime()) ? "-" : d.toLocaleDateString();
   }
 
-  /* =======================
-     Render
-  ======================= */
-
   return (
-    <div className="orders">
-      <header className="orders__header">
+    <div className="p-6 space-y-6">
+      {/* Header */}
+      <header className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
-          <h2 className="orders__title">Orders</h2>
-          <div className="orders__subtitle">List of created orders</div>
+          <h2 className="text-2xl font-semibold text-gray-800">Orders</h2>
+          <p className="text-sm text-gray-500">List of created orders</p>
         </div>
 
-        <div className="orders__search">
+        <div className="flex flex-col sm:flex-row gap-2">
           <input
-            className="order_search_input"
             placeholder="Search by customer..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
+            className="h-11 px-4 rounded-lg border border-gray-300
+                       focus:ring-2 focus:ring-blue-500"
           />
-          <button onClick={() => fetchOrders(debouncedSearch)}>Search</button>
-          <button
+          <CustomButton onClick={() => fetchOrders(debouncedSearch)}>
+            Search
+          </CustomButton>
+          <CustomButton
+            variant="primary"
             onClick={() => {
               setSearch("");
               setDebouncedSearch("");
@@ -218,70 +175,145 @@ export default function OrderList(): JSX.Element {
             }}
           >
             Clear
-          </button>
+          </CustomButton>
         </div>
       </header>
 
-      {error && <div className="orders__error">{error}</div>}
+      {error && (
+        <div className="text-sm text-red-600 border border-red-200 bg-red-50 rounded-lg p-3">
+          {error}
+        </div>
+      )}
+
       {loading ? (
-        <div>Loading orders...</div>
+        <div className="py-10 text-center text-sm text-gray-500">
+          Loading orders…
+        </div>
       ) : orders.length === 0 ? (
-        <div className="orders__empty">No orders found.</div>
+        <div className="py-10 text-center text-sm text-gray-500 border border-dashed rounded-lg">
+          No orders found.
+        </div>
       ) : (
-        <table className="orders__table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Phone</th>
-              <th>Quantity</th>
-              <th>Return Expected</th>
-              <th>Priority</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+        <>
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-hidden border border-gray-200 rounded-xl">
+            <table className="w-full">
+              <thead className="bg-gray-100">
+                <tr>
+                  {[
+                    "Name",
+                    "Phone",
+                    "Quantity",
+                    "Return Expected",
+                    "Priority",
+                    "Status",
+                    "Actions",
+                  ].map((h) => (
+                    <th
+                      key={h}
+                      className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase"
+                    >
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {orders.map((o) => (
+                  <tr
+                    key={o.order_id}
+                    className="border-t hover:bg-gray-50 transition"
+                  >
+                    <td className="px-6 py-4 text-sm">
+                      {o.customer_name ?? o.customer_id}
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-600">
+                      {o.customer_phone ?? "-"}
+                    </td>
+                    <td className="px-6 py-4 text-sm">{o.quantity ?? "-"}</td>
+                    <td className="px-6 py-4 text-sm">
+                      {formatDate(o.return_expected_by)}
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      {o.availability_status ?? "-"}
+                    </td>
+                    <td className="px-6 py-4 text-sm">
+                      {o.status ?? "-"}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex gap-2">
+                        <CustomButton
+                          onClick={() =>
+                            (window.location.href = `/customer-orders/${o.customer_id}`)
+                          }
+                        >
+                          View
+                        </CustomButton>
+                        <CustomButton
+                          variant="danger"
+                          onClick={() => handleDelete(o.order_id)}
+                        >
+                          Delete
+                        </CustomButton>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="md:hidden space-y-3">
             {orders.map((o) => (
-              <tr key={o.order_id}>
-                <td>{o.customer_name ?? o.customer_id}</td>
-                <td>{o.customer_phone ?? "-"}</td>
-                <td>{o.quantity ?? "-"}</td>
-                <td>{formatDate(o.return_expected_by)}</td>
-                <td>{o.availability_status ?? "-"}</td>
-                <td>{o.status ?? "-"}</td>
-                <td className="customer-order-action">
-                  <button
-                    className=""
+              <div
+                key={o.order_id}
+                className="border border-gray-200 rounded-lg p-4 space-y-2 bg-white"
+              >
+                <div className="text-sm font-semibold">
+                  {o.customer_name ?? o.customer_id}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {o.customer_phone ?? "-"}
+                </div>
+                <div className="text-xs text-gray-500">
+                  Return: {formatDate(o.return_expected_by)}
+                </div>
+
+                <div className="flex gap-2 pt-2">
+                  <CustomButton
+                    className="flex-1"
                     onClick={() =>
                       (window.location.href = `/customer-orders/${o.customer_id}`)
                     }
                   >
                     View
-                  </button>
-                  <button
-                    className=""
-                    disabled={o.order_id.startsWith("customer-")}
+                  </CustomButton>
+                  <CustomButton
+                    variant="danger"
+                    className="flex-1"
                     onClick={() => handleDelete(o.order_id)}
                   >
                     Delete
-                  </button>
-                </td>
-              </tr>
+                  </CustomButton>
+                </div>
+              </div>
             ))}
-          </tbody>
-        </table>
+          </div>
+        </>
       )}
 
+      {/* Modal */}
       <Modal
         visible={!!detailsOrder}
         title="Order Details"
         onClose={() => setDetailsOrder(null)}
       >
-        {detailsOrder ? (
-          <div>
+        {detailsOrder && (
+          <div className="text-sm">
             <strong>Order ID:</strong> {detailsOrder.order_id}
           </div>
-        ) : null}
+        )}
       </Modal>
     </div>
   );
