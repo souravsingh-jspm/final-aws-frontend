@@ -1,3 +1,5 @@
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 import React, { useEffect, useState } from "react";
 import {
   useGetAllCustomers,
@@ -8,7 +10,6 @@ import {
 } from "@/services/Customer";
 import CustomButton from "@/components/buttons/CustomButton";
 
-/* -------------------- Modal -------------------- */
 const Modal: React.FC<{
   title: string;
   visible: boolean;
@@ -35,7 +36,6 @@ const Modal: React.FC<{
   );
 };
 
-/* -------------------- Customer CRUD -------------------- */
 const CustomerCrud: React.FC = () => {
   const { data, isLoading } = useGetAllCustomers();
   const createMut = useCreateCustomer();
@@ -60,13 +60,42 @@ const CustomerCrud: React.FC = () => {
     c.customer_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const downloadCustomersPDF = () => {
+  if (!customers.length) return;
+
+  const doc = new jsPDF();
+
+  doc.setFontSize(16);
+  doc.text("Customer List", 14, 15);
+
+  autoTable(doc, {
+    startY: 25,
+    head: [["Name", "Phone", "Address"]],
+    body: customers.map((c) => [
+      c.customer_name,
+      c.customer_phone,
+      c.customer_address ?? "-",
+    ]),
+    styles: {
+      fontSize: 10,
+      cellPadding: 3,
+    },
+    headStyles: {
+      textColor: 255,
+      fontStyle: "bold",
+    },
+  });
+
+  doc.save("customers.pdf");
+};
+
+
   useEffect(() => {
     if (data?.data && Array.isArray(data.data)) {
       setCustomers(data.data);
     }
   }, [data]);
 
-  /* -------------------- Handlers -------------------- */
   const openCreate = () => {
     setEditing(null);
     setName("");
@@ -127,10 +156,8 @@ const CustomerCrud: React.FC = () => {
     await deleteMut.trigger(c.customer_id);
   };
 
-  /* -------------------- Render -------------------- */
   return (
     <div className="p-6 space-y-6">
-      {/* Search */}
       <input
         type="text"
         placeholder="Search customer by name..."
@@ -143,23 +170,33 @@ const CustomerCrud: React.FC = () => {
                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
       />
 
-      {/* Header */}
       <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-semibold text-gray-800">Customers</h2>
           <p className="text-sm text-gray-500">Manage customers</p>
         </div>
 
-        <button
-          onClick={openCreate}
-          className="h-11 px-5 rounded-lg bg-blue-600 text-white text-sm font-medium
-                     hover:bg-blue-700 transition"
-        >
-          Add Customer
-        </button>
+       <div className="flex gap-2">
+  <button
+    onClick={downloadCustomersPDF}
+    disabled={!customers.length}
+    className="h-11 px-5 rounded-lg bg-gray-700 text-white text-sm font-medium
+               hover:bg-gray-800 transition disabled:opacity-50"
+  >
+    Download PDF
+  </button>
+
+  <button
+    onClick={openCreate}
+    className="h-11 px-5 rounded-lg bg-blue-600 text-white text-sm font-medium
+               hover:bg-blue-700 transition"
+  >
+    Add Customer
+  </button>
+</div>
+
       </header>
 
-      {/* Content */}
       {isLoading ? (
         <div className="py-10 text-center text-sm text-gray-500">
           Loading customers...
@@ -170,7 +207,6 @@ const CustomerCrud: React.FC = () => {
         </div>
       ) : (
         <>
-          {/* Desktop Table */}
           <div className="hidden md:block overflow-hidden border border-gray-200 rounded-xl">
             <table className="w-full">
               <thead className="bg-gray-100">
@@ -226,7 +262,6 @@ const CustomerCrud: React.FC = () => {
             </table>
           </div>
 
-          {/* Mobile Cards */}
           <div className="md:hidden space-y-3">
             {filteredCustomers.map((c) => (
               <div
@@ -267,7 +302,6 @@ const CustomerCrud: React.FC = () => {
         </>
       )}
 
-      {/* Modal */}
       <Modal
         title={editing ? "Edit Customer" : "Add Customer"}
         visible={modalOpen}
