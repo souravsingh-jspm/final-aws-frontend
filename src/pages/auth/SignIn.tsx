@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { BASE_URL } from "@/constant/appConstant";
 import { saveAuth } from "@/auth/authStorage";
 import { useAuth } from "@/auth/AuthContext";
+import Marquee from "@/components/marquee/Marquee";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -42,7 +43,11 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container">
+    <>
+    <div className="">
+      <Marquee/>
+    </div>
+        <div className="login-container">
       <div className="login-card">
         <h1 className="login-title">Sign In</h1>
         <p className="login-subtitle">Welcome back. Please login.</p>
@@ -75,6 +80,8 @@ const Login = () => {
         </div>
       </div>
     </div>
+    </>
+
   );
 };
 
