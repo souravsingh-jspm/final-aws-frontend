@@ -60,6 +60,10 @@ export default function Dashboard() {
 
   const [todayOrders, setTodayOrders] = useState<TodayOrder[]>([]);
   const [todayLoading, setTodayLoading] = useState(false);
+  const [returnOrders, setReturnOrders] = useState<TodayOrder[]>([]);
+  const [returnLoading, setReturnLoading] = useState(false);
+
+  const [activeTab, setActiveTab] = useState<"created" | "return">("return");
 
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
 
@@ -103,21 +107,27 @@ const getGarmentQty = (
   return selected?.[garmentName] ?? " ";
 };
 
+const tabLabelMap = {
+  created: "Created Today",
+  return: "Return Expected",
+} as const;
 
-const downloadTodayOrdersPdf = () => {
+const downloadTodayOrdersPdf = (
+  orders: TodayOrder[],
+  activeTab: "created" | "return"
+) => {
   const doc = new jsPDF({
     orientation: "landscape",
     unit: "mm",
     format: "a4",
   });
 
-const dateLabel = selectedDate
-  ? formatDateForApi(selectedDate)
-  : "";
+  const dateLabel = selectedDate ? formatDateForApi(selectedDate) : "";
+  const tabLabel = tabLabelMap[activeTab];
 
 
   doc.setFontSize(14);
-  doc.text(`Order Summary for ${dateLabel}`, 14, 12);
+  doc.text(`${tabLabel} for ${dateLabel}`, 14, 12);
 
 autoTable(doc, {
   startY: 18,
@@ -127,8 +137,8 @@ autoTable(doc, {
     cellPadding: 2,
     halign: "center",
     valign: "middle",
-    lineWidth: 0.2,         
-    lineColor: [0, 0, 0], 
+    lineWidth: 0.2,
+    lineColor: [0, 0, 0],
   },
 
   headStyles: {
@@ -136,39 +146,45 @@ autoTable(doc, {
     textColor: 0,
     fontStyle: "bold",
     minCellHeight: 45,
-    lineWidth: 0.3,        
+    lineWidth: 0.3,
   },
 
   bodyStyles: {
     lineWidth: 0.2,
   },
 
+
   head: [
-    [     
-      "Customer Id",
-      "Customer",
-      ...garments.map(() => ""),
+    [
+      "Customer Id",          // index 0
+      "Customer",             // index 1
+      ...garments.map(() => ""), // index 2 → garments
       "Total",
       "Return By",
       "Created",
     ],
   ],
 
-  body: todayOrders.map((o) => [
-    o.customer_unique_id,
-    o.customer_name,
+
+  body: orders.map((o) => [
+    o.customer_unique_id,     // 0
+    o.customer_name,          // 1
     ...garments.map((g) =>
       getGarmentQty(o.selected_garments, g.garment_name)
-    ),
+    ),                         // 2+
     o.total,
     new Date(o.return_expected_by).toLocaleDateString("en-GB"),
     new Date(o.order_created).toLocaleTimeString("en-GB"),
   ]),
 
+
   didDrawCell: (data) => {
     if (data.section !== "head") return;
 
-    const garmentStartIndex = 1;
+    // Garments start AFTER:
+    // Customer Id (0)
+    // Customer (1)
+    const garmentStartIndex = 2;
     const garmentEndIndex = garmentStartIndex + garments.length - 1;
 
     if (
@@ -193,7 +209,7 @@ autoTable(doc, {
 });
 
 
-  doc.save(`Shivali-Washing-Orders-${dateLabel}.pdf`);
+  doc.save(`Shivali-Washing-Orders-${tabLabel}-${dateLabel}.pdf`);
 };
 
 
@@ -224,6 +240,29 @@ autoTable(doc, {
     .finally(() => setTodayLoading(false));
 }, [selectedDate]);
 
+ // Fetch return-expected by selected date
+ useEffect(() => {
+  if (!selectedDate) return;
+
+  const dateStr = formatDateForApi(selectedDate);
+
+  setReturnLoading(true);
+
+  fetch(`${BASE_URL}order/return-expected?date=${dateStr}`)
+    .then((res) => res.json())
+  .then((res) => {
+    const normalized = Array.isArray(res.data)
+      ? res.data.map((o: any) => ({
+          ...o,
+          customer_unique_id: o.customer_unique_id ?? "-",
+          customer_phone: o.customer_phone ?? "-",
+        }))
+      : [];
+    setReturnOrders(normalized);
+  })
+    .finally(() => setReturnLoading(false));
+}, [selectedDate]);
+
 
   useEffect(() => {
 
@@ -239,6 +278,10 @@ setGarments(sorted);    })
 
   if (loading) return <div className="dashboard__loading">Loading...</div>;
   if (!data) return null;
+
+  const isReturnTab = activeTab === "return";
+  const visibleOrders = isReturnTab ? returnOrders : todayOrders;
+  const isLoading = isReturnTab ? returnLoading : todayLoading;
 
   return (
     <div className="dashboard">
@@ -295,8 +338,8 @@ setGarments(sorted);    })
             />
 
             <button
-              onClick={downloadTodayOrdersPdf}
-              disabled={todayOrders.length === 0}
+              onClick={() => downloadTodayOrdersPdf(visibleOrders, activeTab)}
+              disabled={visibleOrders.length === 0}
               style={{
                 padding: "6px 12px",
                 borderRadius: "6px",
@@ -312,9 +355,42 @@ setGarments(sorted);    })
           </div>
         </div>
 
-        {todayLoading ? (
+        <div style={{ display: "flex", gap: "0.5rem", marginBottom: "0.75rem" }}>
+          <button
+            onClick={() => setActiveTab("return")}
+            style={{
+              padding: "8px 14px",
+              borderRadius: "8px",
+              border: "1px solid #cbd5e1",
+              background: isReturnTab ? "#0ea5e9" : "#f8fafc",
+              color: isReturnTab ? "#fff" : "#0f172a",
+              cursor: "pointer",
+              fontWeight: 600,
+              boxShadow: isReturnTab ? "0 3px 10px rgba(14,165,233,0.35)" : "none",
+            }}
+          >
+            Today's Return
+          </button>
+          <button
+            onClick={() => setActiveTab("created")}
+            style={{
+              padding: "8px 14px",
+              borderRadius: "8px",
+              border: "1px solid #cbd5e1",
+              background: !isReturnTab ? "#22c55e" : "#f8fafc",
+              color: !isReturnTab ? "#fff" : "#0f172a",
+              cursor: "pointer",
+              fontWeight: 600,
+              boxShadow: !isReturnTab ? "0 3px 10px rgba(34,197,94,0.35)" : "none",
+            }}
+          >
+            Today's Created
+          </button>
+        </div>
+
+        {isLoading ? (
           <div>Loading orders…</div>
-        ) : todayOrders.length === 0 ? (
+        ) : visibleOrders.length === 0 ? (
           <div>No orders found.</div>
         ) : (
           <div style={{ overflowX: "auto" }}>
@@ -322,10 +398,9 @@ setGarments(sorted);    })
                 <table className="customer__table">
                   <thead>
                     <tr>
-                      <th className="sticky-left">Customer ID</th>
-                      <th className="sticky-left">Customer</th>
-                      <th className="sticky-left">Phone</th>
-
+                  <th className="sticky-left">Customer ID</th>
+                  <th className="sticky-left-1">Customer</th>
+                  <th className="sticky-left-2">Phone</th>
                       {garments.map((g) => (
                         <th
                           key={g.garment_id}
@@ -344,10 +419,10 @@ setGarments(sorted);    })
                   </thead>
 
                   <tbody>
-                    {todayOrders.map((o) => (
+                    {visibleOrders.map((o) => (
                       <tr key={o.order_id}>
                         <td className="sticky-left">{o.customer_unique_id}</td>
-                        <td className="sticky-left">{o.customer_name}</td>
+                        <td className="sticky-left-1">{o.customer_name}</td>
                         <td className="sticky-left-2">{o.customer_phone}</td>
 
                       {garments.map((g) => (

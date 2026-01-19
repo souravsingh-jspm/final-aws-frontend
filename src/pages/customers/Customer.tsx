@@ -56,9 +56,15 @@ const CustomerCrud: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
 
-  const filteredCustomers = customers.filter((c) =>
-    c.customer_name.toLowerCase().includes(searchTerm.toLowerCase())
+const filteredCustomers = customers.filter((c) => {
+  const term = searchTerm.toLowerCase().trim();
+
+  return (
+    c.customer_name.toLowerCase().includes(term) ||
+    c.customer_phone.toLowerCase().includes(term) ||
+    c.customer_unique_id?.toLowerCase().includes(term)
   );
+});
 
   const downloadCustomersPDF = () => {
   if (!customers.length) return;
@@ -376,7 +382,7 @@ const CustomerCrud: React.FC = () => {
         </form>
       </Modal>
     </div>
-  );
+  );  
 };
 
 export default CustomerCrud;
