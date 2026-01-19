@@ -7,6 +7,7 @@ import { toast } from "react-toastify";
 
 /* ---------- Types ---------- */
 export interface Customer {
+  customer_unique_id: string;
   customer_id: string;
   customer_name: string;
   customer_email: string;

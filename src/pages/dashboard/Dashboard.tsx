@@ -25,6 +25,7 @@ type DashboardData = {
 };
 
 type TodayOrder = {
+  customer_unique_id: string;
   order_id: string;
   customer_name: string;
   customer_phone: string;
@@ -143,7 +144,8 @@ autoTable(doc, {
   },
 
   head: [
-    [
+    [     
+      "Customer Id",
       "Customer",
       ...garments.map(() => ""),
       "Total",
@@ -153,6 +155,7 @@ autoTable(doc, {
   ],
 
   body: todayOrders.map((o) => [
+    o.customer_unique_id,
     o.customer_name,
     ...garments.map((g) =>
       getGarmentQty(o.selected_garments, g.garment_name)
@@ -319,6 +322,7 @@ setGarments(sorted);    })
                 <table className="customer__table">
                   <thead>
                     <tr>
+                      <th className="sticky-left">Customer ID</th>
                       <th className="sticky-left">Customer</th>
                       <th className="sticky-left">Phone</th>
 
@@ -342,6 +346,7 @@ setGarments(sorted);    })
                   <tbody>
                     {todayOrders.map((o) => (
                       <tr key={o.order_id}>
+                        <td className="sticky-left">{o.customer_unique_id}</td>
                         <td className="sticky-left">{o.customer_name}</td>
                         <td className="sticky-left-2">{o.customer_phone}</td>
 
