@@ -25,7 +25,7 @@ type DashboardData = {
 };
 
 type TodayOrder = {
-  customer_unique_id: string;
+  customer_seq: number;
   order_id: string;
   customer_name: string;
   customer_phone: string;
@@ -167,7 +167,7 @@ autoTable(doc, {
 
 
   body: orders.map((o) => [
-    o.customer_unique_id,     // 0
+    o.customer_seq,     // 0
     o.customer_name,          // 1
     ...garments.map((g) =>
       getGarmentQty(o.selected_garments, g.garment_name)
@@ -254,7 +254,7 @@ autoTable(doc, {
     const normalized = Array.isArray(res.data)
       ? res.data.map((o: any) => ({
           ...o,
-          customer_unique_id: o.customer_unique_id ?? "-",
+          customer_seq: o.customer_seq ?? "-",
           customer_phone: o.customer_phone ?? "-",
         }))
       : [];
@@ -421,7 +421,7 @@ setGarments(sorted);    })
                   <tbody>
                     {visibleOrders.map((o) => (
                       <tr key={o.order_id}>
-                        <td className="sticky-left">{o.customer_unique_id}</td>
+                        <td className="sticky-left">{o.customer_seq}</td>
                         <td className="sticky-left-1">{o.customer_name}</td>
                         <td className="sticky-left-2">{o.customer_phone}</td>
 

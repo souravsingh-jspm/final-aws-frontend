@@ -62,7 +62,7 @@ const filteredCustomers = customers.filter((c) => {
   return (
     c.customer_name.toLowerCase().includes(term) ||
     c.customer_phone.toLowerCase().includes(term) ||
-    c.customer_unique_id?.toLowerCase().includes(term)
+    c.customer_seq?.toString().includes(term)
   );
 });
 
