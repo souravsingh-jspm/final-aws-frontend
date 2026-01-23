@@ -1,4 +1,5 @@
 import { JSX, useEffect, useState, Fragment } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import DatePicker from "../../components/DatePicker";
 import { BASE_URL } from "../../constant/appConstant";
 import { Combobox } from "@headlessui/react";
@@ -9,9 +10,10 @@ type Garment = { garment_id: string; garment_name: string };
 type Service = { service_id: string; service_name: string; garment_id: string };
 
 type ItemRow = {
-  id: string;
+  id: string;                 
+  order_item_id?: string;     
   garment_id?: string;
-  service_id?: string;
+  service_id?: string;        
   quantity: number;
 };
 
@@ -20,6 +22,7 @@ const GARMENT_BASE = BASE_URL + "garment/garment";
 const SERVICE_BASE = BASE_URL + "service/service";
 const ORDER_BASE = BASE_URL + "order/order";
 const ORDER_ITEM_BASE = BASE_URL + "order-item/order-item";
+const ORDER_SPECIAL_BASE = BASE_URL + "order/order/special";
 
 const uid = (p = "") => p + Math.random().toString(36).slice(2, 9);
 
@@ -39,6 +42,10 @@ function useDebounce<T>(value: T, delay = 300): T {
 }
 
 export default function OrderCreator(): JSX.Element {
+  const { id: orderIdParam } = useParams<{ id: string }>();
+  const isEditMode = Boolean(orderIdParam);
+  const navigate = useNavigate();
+
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [garments, setGarments] = useState<Garment[]>([]);
   const [services, setServices] = useState<Service[]>([]);
@@ -47,15 +54,15 @@ export default function OrderCreator(): JSX.Element {
   const [customerQuery, setCustomerQuery] = useState("");
   const debouncedCustomerQuery = useDebounce(customerQuery);
 
-  const [items, setItems] = useState<ItemRow[]>([
-    { id: uid("r_"), quantity: 1 },
-  ]);
-
   const [availability, setAvailability] = useState<
     "MAHA_URGENT" | "URGENT" | "NORMAL"
   >("NORMAL");
 
   const [returnExpectedBy, setReturnExpectedBy] = useState<string>();
+  const [items, setItems] = useState<ItemRow[]>([
+    { id: uid("r_"), quantity: 1 },
+  ]);
+
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -71,6 +78,10 @@ export default function OrderCreator(): JSX.Element {
           .toLowerCase()
           .includes(debouncedCustomerQuery.toLowerCase())
       );
+
+  function servicesForGarment(garmentId?: string) {
+    return services.filter((s) => s.garment_id === garmentId);
+  }
 
   useEffect(() => {
     setLoading(true);
@@ -88,18 +99,45 @@ export default function OrderCreator(): JSX.Element {
       .finally(() => setLoading(false));
   }, []);
 
+  useEffect(() => {
+    if (
+      !isEditMode ||
+      !orderIdParam ||
+      customers.length === 0 ||
+      garments.length === 0
+    )
+      return;
+
+    fetch(`${ORDER_SPECIAL_BASE}/${orderIdParam}`)
+      .then((r) => r.json())
+      .then((res) => {
+        const data = res.data;
+
+        setCustomerId(data.customer.customer_id);
+        setAvailability(data.availability_status);
+        setReturnExpectedBy(data.return_expected_by);
+
+        setItems(
+          data.items.map((it: any) => ({
+            id: uid("r_"),
+            order_item_id: it.order_item_id,
+            garment_id: it.garment_id,
+            quantity: it.quantity,
+            service_id: undefined, // ✅ Option 1
+          }))
+        );
+      })
+      .catch(() => setError("Failed to load order for editing"));
+  }, [isEditMode, orderIdParam, customers.length, garments.length]);
+
   function updateRow(id: string, patch: Partial<ItemRow>) {
     setItems((p) => p.map((r) => (r.id === id ? { ...r, ...patch } : r)));
-  }
-
-  function servicesForGarment(garmentId?: string) {
-    return services.filter((s) => s.garment_id === garmentId);
   }
 
   function validate() {
     if (!customerId) return "Please select a customer.";
     if (!returnExpectedBy)
-      return "Please select the expected return date for the order.";
+      return "Please select the expected return date.";
 
     for (let i = 0; i < items.length; i++) {
       const it = items[i];
@@ -122,51 +160,85 @@ export default function OrderCreator(): JSX.Element {
     }
 
     setSubmitting(true);
+
     try {
-      const orderRes = await fetch(ORDER_BASE, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          customer_id: customerId,
-          availability_status: availability,
-          return_expected_by: returnExpectedBy,
-          quantity: items.reduce((s, i) => s + i.quantity, 0),
-        }),
-      });
+      const totalQuantity = items.reduce((s, i) => s + i.quantity, 0);
+      let orderId = orderIdParam;
 
-      if (!orderRes.ok) throw new Error("Failed to create order");
-      const { data } = await orderRes.json();
-      const order_id = data?.order_id;
-      if (!order_id) throw new Error("Missing order_id");
+      if (isEditMode && orderId) {
+        await fetch(`${ORDER_BASE}/${orderId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            availability_status: availability,
+            return_expected_by: returnExpectedBy,
+            quantity: totalQuantity,
+          }),
+        });
+      } else {
+        const orderRes = await fetch(ORDER_BASE, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            customer_id: customerId,
+            availability_status: availability,
+            return_expected_by: returnExpectedBy,
+            quantity: totalQuantity,
+          }),
+        });
 
-      await Promise.all(
-        items.map((it) =>
-          fetch(ORDER_ITEM_BASE, {
+        const { data } = await orderRes.json();
+        orderId = data.order_id;
+      }
+
+      for (const item of items) {
+        if (item.order_item_id) {
+          await fetch(`${ORDER_ITEM_BASE}/${item.order_item_id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              garment_id: item.garment_id,
+              quantity: item.quantity,
+            }),
+          });
+        } else {
+          await fetch(ORDER_ITEM_BASE, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ...it, order_id }),
-          })
-        )
-      );
+            body: JSON.stringify({
+              order_id: orderId,
+              garment_id: item.garment_id,
+              service_id: item.service_id,
+              quantity: item.quantity,
+            }),
+          });
+        }
+      }
 
-      setSuccessMsg("Order and items created successfully.");
-      setItems([{ id: uid("r_"), quantity: 1 }]);
-      setCustomerId("");
-      setAvailability("NORMAL");
-      setReturnExpectedBy(undefined);
+      setSuccessMsg(isEditMode ? "Order updated successfully." : "Order created successfully.");
+      navigate("/orders");
+
     } catch (e: any) {
-      setError(e.message ?? "Failed to create order");
+      setError(e.message ?? "Failed to save order");
     } finally {
       setSubmitting(false);
     }
   }
 
+  const hasMissingService = items.some((i) => !i.service_id);
+
+  return (
+<>
 return (
   <div className="max-w-4xl mx-auto p-6">
     <header className="mb-6">
-      <h1 className="text-2xl font-semibold">Create New Order</h1>
+      <h1 className="text-2xl font-semibold">
+        {isEditMode ? "Edit Order" : "Create New Order"}
+      </h1>
       <p className="text-sm text-gray-500 mt-1">
-        Create an order and one or more items.
+        {isEditMode
+          ? "Update order details and items."
+          : "Create an order and one or more items."}
       </p>
     </header>
 
@@ -182,7 +254,7 @@ return (
             onChange={(c: Customer | null) =>
               setCustomerId(c ? c.customer_id : "")
             }
-            disabled={submitting}
+            disabled={submitting || isEditMode}
           >
             <div className="relative">
               <Combobox.Input
@@ -231,7 +303,7 @@ return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Availability (applies to whole order)
+              Availability
             </label>
             <select
               className="w-full border rounded-md p-2"
@@ -251,7 +323,7 @@ return (
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Return expected (applies to whole order)
+              Return expected
             </label>
             <DatePicker
               value={returnExpectedBy ? new Date(returnExpectedBy) : null}
@@ -269,41 +341,31 @@ return (
       <section className="bg-white border rounded-lg p-4 shadow-sm">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-medium">Order Items</h2>
-          <button
-            type="button"
+          <CustomButton
             onClick={() =>
               setItems((p) => [...p, { id: uid("r_"), quantity: 1 }])
             }
-            className="inline-flex items-center gap-2 px-3 py-1.5 border rounded-md bg-blue-600 text-white hover:bg-blue-700"
             disabled={submitting}
           >
             + Add item
-          </button>
+          </CustomButton>
         </div>
 
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead>
               <tr>
-                <th className="px-3 py-2 text-left text-sm text-gray-600">
-                  Garment
-                </th>
-                <th className="px-3 py-2 text-left text-sm text-gray-600">
-                  Service
-                </th>
-                <th className="px-3 py-2 text-left text-sm text-gray-600">
-                  Quantity
-                </th>
-                <th className="px-3 py-2 text-right text-sm text-gray-600">
-                  Action
-                </th>
+                <th className="px-3 py-2 text-left text-sm">Garment</th>
+                <th className="px-3 py-2 text-left text-sm">Service</th>
+                <th className="px-3 py-2 text-left text-sm">Quantity</th>
+                <th className="px-3 py-2 text-right text-sm">Action</th>
               </tr>
             </thead>
 
-            <tbody className="bg-white divide-y divide-gray-100">
+            <tbody className="divide-y">
               {items.map((row) => (
-                <tr key={row.id} className="align-top">
-                  <td className="px-3 py-2 w-1/5">
+                <tr key={row.id}>
+                  <td className="px-3 py-2">
                     <select
                       className="w-full border rounded-md p-2"
                       value={row.garment_id ?? ""}
@@ -315,7 +377,7 @@ return (
                       }
                       disabled={submitting}
                     >
-                      <option value="">select garment</option>
+                      <option value="">Select garment</option>
                       {garments.map((g) => (
                         <option key={g.garment_id} value={g.garment_id}>
                           {g.garment_name}
@@ -324,7 +386,7 @@ return (
                     </select>
                   </td>
 
-                  <td className="px-3 py-2 w-1/5">
+                  <td className="px-3 py-2">
                     <select
                       className="w-full border rounded-md p-2"
                       value={row.service_id ?? ""}
@@ -335,16 +397,22 @@ return (
                       }
                       disabled={submitting || !row.garment_id}
                     >
-                      <option value="">select service</option>
+                      <option value="">Select service</option>
                       {servicesForGarment(row.garment_id).map((s) => (
                         <option key={s.service_id} value={s.service_id}>
                           {s.service_name}
                         </option>
                       ))}
                     </select>
+
+                    {isEditMode && !row.service_id && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Please re-select service
+                      </p>
+                    )}
                   </td>
 
-                  <td className="px-3 py-2 w-1/12">
+                  <td className="px-3 py-2">
                     <input
                       type="number"
                       min={1}
@@ -362,9 +430,15 @@ return (
                   <td className="px-3 py-2 text-right">
                     <CustomButton
                       variant="danger"
-                      onClick={() =>
-                        setItems((p) => p.filter((r) => r.id !== row.id))
-                      }
+                      onClick={async () => {
+                        if (row.order_item_id) {
+                          await fetch(
+                            `${ORDER_ITEM_BASE}/${row.order_item_id}`,
+                            { method: "DELETE" }
+                          );
+                        }
+                        setItems((p) => p.filter((r) => r.id !== row.id));
+                      }}
                     >
                       Remove
                     </CustomButton>
@@ -386,33 +460,25 @@ return (
       )}
 
       <footer className="flex justify-end gap-3">
-        <button
-          type="button"
-          onClick={() => {
-            setItems([{ id: uid("r_"), quantity: 1 }]);
-            setCustomerId("");
-            setAvailability("NORMAL");
-            setReturnExpectedBy(undefined);
-            setError(null);
-            setSuccessMsg(null);
-          }}
-          className="px-4 py-2 border rounded-md bg-white hover:bg-gray-50"
+        <CustomButton
+          variant="ghost"
+          onClick={() => navigate(-1)}
           disabled={submitting}
         >
-          Reset
-        </button>
+          Cancel
+        </CustomButton>
 
-        <button
-          type="button"
+        <CustomButton
           onClick={handleSubmit}
-          className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-60"
-          disabled={submitting}
+          disabled={submitting || hasMissingService}
         >
-          {submitting ? "Submitting..." : "Create Order"}
-        </button>
+          {isEditMode ? "Update Order" : "Create Order"}
+        </CustomButton>
       </footer>
     </main>
   </div>
 );
 
+</>
+  );
 }
