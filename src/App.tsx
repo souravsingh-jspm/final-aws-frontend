@@ -14,6 +14,7 @@ import Garment from "./pages/garments/Garment";
 import Customer from "./pages/customers/Customer";
 import Dashboard from "./pages/dashboard/Dashboard";
 import OrderView from "./pages/orders/component/OrderView"
+import OrderHistory from "./pages/orders/component/OrderHistory";
 
 const App = () => {
   return (
@@ -30,11 +31,11 @@ const App = () => {
           <Route element={<AppLayout />}>
             <Route index path={ROUTES.DASHBOARD} element={<Dashboard />} />
             <Route path="/orders">
-            <Route path={ROUTES.ORDERS} element={<OrderList />} />
+              <Route path={ROUTES.ORDERS} element={<OrderList />} />
+              <Route path="/orders/history/:customerId" element={<OrderHistory />} />
               <Route path="view/:id" element={<OrderView />} />
-              {/* <Route path="/orders/edit/:orderId" element={<OrderEdit />} /> */}
+              <Route path="/orders/edit/:id" element={<OrderItems />} />
             </Route>
-            {/* <Route path="/orders/edit/:orderId" element={<OrderEdit />} /> */}
             <Route path={ROUTES.CUSTOMER_ORDERS} element={<CustomerOrders />} />
             <Route path={ROUTES.ADMIN_ORDERS} element={<Orders />} />
             <Route path={ROUTES.ADMIN_ORDER_ITEMS} element={<OrderItems />} />

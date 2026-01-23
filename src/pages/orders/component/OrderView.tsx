@@ -1,31 +1,32 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { BASE_URL } from "@/constant/appConstant";
+import CustomButton from "@/components/buttons/CustomButton";
 
-type Order = {
-  order_id: string;
-  customer_id: string;
-  quantity: number;
-  availability_status: "NORMAL" | "URGENT" | "MAHA_URGENT";
+const ORDER_SPECIAL_BASE = BASE_URL + "order/order/special";
+
+type OrderSpecialResponse = {
   return_expected_by: string;
+  createdAt: string;
+  customer: {
+    customer_name: string;
+    customer_phone: string;
+    customer_seq: number;
+    customer_address: string | null;
+  };
+  items: {
+    quantity: number;
+    garment: {
+      garment_name: string;
+    };
+  }[];
 };
-
-type OrderItem = {
-  order_item_id: string;
-  garment_id: string;
-  service_id: string;
-  quantity: number;
-};
-
-const ORDER_BASE = BASE_URL + "order/order";
-const ORDER_ITEM_BASE = BASE_URL + "order-item/order";
 
 export default function OrderView() {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [order, setOrder] = useState<Order | null>(null);
-  const [items, setItems] = useState<OrderItem[]>([]);
+  const [order, setOrder] = useState<OrderSpecialResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,22 +37,13 @@ export default function OrderView() {
       return;
     }
 
-    setLoading(true);
-
-    Promise.all([
-      fetch(`${ORDER_BASE}/${id}`),
-      fetch(`${ORDER_ITEM_BASE}/${id}`),
-    ])
-      .then(async ([orderRes, itemRes]) => {
-        if (!orderRes.ok || !itemRes.ok) {
-          throw new Error("API request failed");
-        }
-
-        const orderJson = await orderRes.json();
-        const itemJson = await itemRes.json();
-
-        setOrder(orderJson.data ?? orderJson);
-        setItems(itemJson.data ?? itemJson);
+    fetch(`${ORDER_SPECIAL_BASE}/${id}`)
+      .then((r) => {
+        if (!r.ok) throw new Error("Failed to fetch order");
+        return r.json();
+      })
+      .then((res) => {
+        setOrder(res.data);
       })
       .catch((err) => {
         console.error(err);
@@ -66,48 +58,75 @@ export default function OrderView() {
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-6">
-      <header className="flex justify-between items-center">
+      {/* Header */}
+      <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold">Order Details</h1>
-        <button
-          onClick={() => navigate(-1)}
-          className="px-3 py-1.5 border rounded-md bg-white hover:bg-gray-50"
-        >
+        <CustomButton variant="ghost" onClick={() => navigate(-1)}>
           Back
-        </button>
-      </header>
+        </CustomButton>
+      </div>
 
+      {/* Customer & Order Info */}
       <section className="bg-white border rounded-lg p-4 shadow-sm space-y-2">
-        <div><strong>Order ID:</strong> {order.order_id}</div>
-        <div><strong>Customer ID:</strong> {order.customer_id}</div>
-        <div><strong>Urgency:</strong> {order.availability_status}</div>
-        <div><strong>Quantity:</strong> {order.quantity}</div>
         <div>
-          <strong>Return Date:</strong>{" "}
+          <strong>Customer Name:</strong> {order.customer.customer_name}
+        </div>
+        <div>
+          <strong>Customer Seq:</strong> {order.customer.customer_seq}
+        </div>
+        <div>
+          <strong>Customer Phone:</strong> {order.customer.customer_phone}
+        </div>
+        <div>
+          <strong>Return Expected By:</strong>{" "}
           {new Date(order.return_expected_by).toLocaleDateString()}
+        </div>
+        <div>
+          <strong>Created At:</strong>{" "}
+          {new Date(order.createdAt).toLocaleDateString()}
         </div>
       </section>
 
+      {/* Order Items */}
       <section className="bg-white border rounded-lg p-4 shadow-sm">
         <h2 className="text-lg font-medium mb-3">Order Items</h2>
 
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead>
-            <tr>
-              <th className="px-3 py-2 text-left text-sm">Garment</th>
-              <th className="px-3 py-2 text-left text-sm">Service</th>
-              <th className="px-3 py-2 text-left text-sm">Quantity</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y">
-            {items.map((i) => (
-              <tr key={i.order_item_id}>
-                <td className="px-3 py-2">{i.garment_id}</td>
-                <td className="px-3 py-2">{i.service_id}</td>
-                <td className="px-3 py-2">{i.quantity}</td>
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th className="px-3 py-2 text-left text-sm text-gray-600">
+                  Garment
+                </th>
+                <th className="px-3 py-2 text-left text-sm text-gray-600">
+                  Quantity
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+
+            <tbody className="divide-y">
+              {order.items.map((item, idx) => (
+                <tr key={idx}>
+                  <td className="px-3 py-2">
+                    {item.garment.garment_name}
+                  </td>
+                  <td className="px-3 py-2">{item.quantity}</td>
+                </tr>
+              ))}
+
+              {order.items.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={2}
+                    className="px-3 py-4 text-center text-gray-500"
+                  >
+                    No items found.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </section>
     </div>
   );
