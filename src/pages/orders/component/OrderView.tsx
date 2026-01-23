@@ -18,10 +18,10 @@ type OrderItem = {
 };
 
 const ORDER_BASE = BASE_URL + "order/order";
-const ORDER_ITEM_BASE = BASE_URL + "order-item/order-item";
+const ORDER_ITEM_BASE = BASE_URL + "order-item/order";
 
 export default function OrderView() {
-  const { id } = useParams(); // ✅ MATCHES BACKEND
+  const { id } = useParams();
   const navigate = useNavigate();
 
   const [order, setOrder] = useState<Order | null>(null);
@@ -53,7 +53,10 @@ export default function OrderView() {
         setOrder(orderJson.data ?? orderJson);
         setItems(itemJson.data ?? itemJson);
       })
-      .catch(() => setError("Failed to load order details"))
+      .catch((err) => {
+        console.error(err);
+        setError("Failed to load order details");
+      })
       .finally(() => setLoading(false));
   }, [id]);
 
