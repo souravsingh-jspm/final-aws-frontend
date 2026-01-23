@@ -13,6 +13,7 @@ import Service from "./pages/services/Service";
 import Garment from "./pages/garments/Garment";
 import Customer from "./pages/customers/Customer";
 import Dashboard from "./pages/dashboard/Dashboard";
+import OrderView from "./pages/orders/component/OrderView"
 
 const App = () => {
   return (
@@ -28,7 +29,12 @@ const App = () => {
         <Route element={<ProtectedRoute />}>
           <Route element={<AppLayout />}>
             <Route index path={ROUTES.DASHBOARD} element={<Dashboard />} />
+            <Route path="/orders">
             <Route path={ROUTES.ORDERS} element={<OrderList />} />
+              <Route path="view/:id" element={<OrderView />} />
+              {/* <Route path="/orders/edit/:orderId" element={<OrderEdit />} /> */}
+            </Route>
+            {/* <Route path="/orders/edit/:orderId" element={<OrderEdit />} /> */}
             <Route path={ROUTES.CUSTOMER_ORDERS} element={<CustomerOrders />} />
             <Route path={ROUTES.ADMIN_ORDERS} element={<Orders />} />
             <Route path={ROUTES.ADMIN_ORDER_ITEMS} element={<OrderItems />} />

@@ -1,320 +1,93 @@
-import React, { useEffect, useState, useRef, JSX } from "react";
-import { BASE_URL } from "../../constant/appConstant";
-import CustomButton from "@/components/buttons/CustomButton";
-
-type OrderItem = {
-  id: string;
-};
-
 type Order = {
   order_id: string;
   customer_id: string;
-  customer_name?: string;
-  customer_phone?: string;
-  quantity?: number | string;
-  status?: string;
-  availability_status?: string;
-  return_expected_by?: string;
-  items?: OrderItem[] | null;
+  quantity: number;
+  availability_status: "NORMAL" | "URGENT" | "MAHA_URGENT";
+  return_expected_by: string;
+  created_at?: string;
 };
+
+import { useEffect, useState } from "react";
+import { BASE_URL } from "../../constant/appConstant";
+import { useNavigate } from "react-router-dom";
 
 const ORDER_BASE = BASE_URL + "order/order";
 
-/* =======================
-   Helpers (unchanged)
-======================= */
-function unwrapArray<T>(raw: any): T[] {
-  if (!raw) return [];
-  if (Array.isArray(raw)) return raw;
-  if (raw?.data && Array.isArray(raw.data)) return raw.data;
-  return [];
-}
-
-function mapCustomersToOrders(customers: any[]): Order[] {
-  return customers.map((c) => ({
-    order_id: `customer-${c.customer_id}`,
-    customer_id: c.customer_id,
-    customer_name: c.customer_name ?? "-",
-    customer_phone: c.customer_phone ?? "-",
-    quantity: "-",
-    status: "-",
-    availability_status: "-",
-    return_expected_by: undefined,
-    items: [],
-  }));
-}
-
-/* =======================
-   Modal
-======================= */
-const Modal: React.FC<{
-  visible: boolean;
-  title?: string;
-  onClose: () => void;
-  children: React.ReactNode;
-}> = ({ visible, title, onClose, children }) => {
-  if (!visible) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
-      <div className="w-full max-w-md mx-4 bg-white rounded-xl shadow-lg">
-        <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
-          <button
-            onClick={onClose}
-            className="text-xl text-gray-400 hover:text-gray-600"
-          >
-            ×
-          </button>
-        </div>
-        <div className="p-6">{children}</div>
-      </div>
-    </div>
-  );
-};
-
-/* =======================
-   Orders Page
-======================= */
-export default function OrderList(): JSX.Element {
+export default function OrderList() {
   const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [detailsOrder, setDetailsOrder] = useState<Order | null>(null);
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-
-  const debounceRef = useRef<number | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    fetchOrders();
+    fetch(ORDER_BASE)
+      .then((r) => r.json())
+      .then((res) => setOrders(res.data ?? res))
+      .catch(() => setError("Failed to load orders"))
+      .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = window.setTimeout(
-      () => setDebouncedSearch(search.trim()),
-      400
-    );
-  }, [search]);
+  async function deleteOrder(orderId: string) {
+    if (!confirm("Are you sure you want to delete this order?")) return;
 
-  useEffect(() => {
-    fetchOrders(debouncedSearch);
-  }, [debouncedSearch]);
-
-  async function fetchOrders(searchTerm = "") {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const isSearch = Boolean(searchTerm);
-      const url = isSearch
-        ? `https://api.shivaliwashingcompany.in/customer/customer-search?search=${encodeURIComponent(
-            searchTerm
-          )}`
-        : ORDER_BASE;
-
-      const res = await fetch(url);
-      const raw = await res.json().catch(() => null);
-      const list = unwrapArray<any>(raw);
-
-      setOrders(isSearch ? mapCustomersToOrders(list) : (list as Order[]));
-    } catch (err: any) {
-      setError(err?.message || "Failed to fetch orders");
-      setOrders([]);
-    } finally {
-      setLoading(false);
-    }
+    await fetch(`${ORDER_BASE}/${orderId}`, { method: "DELETE" });
+    setOrders((p) => p.filter((o) => o.order_id !== orderId));
   }
 
-  async function handleDelete(order_id: string) {
-    if (order_id.startsWith("customer-")) return;
-    if (!confirm("Delete this order?")) return;
-
-    try {
-      await fetch(`${ORDER_BASE}/${order_id}`, { method: "DELETE" });
-      setOrders((prev) => prev.filter((o) => o.order_id !== order_id));
-    } catch {
-      alert("Failed to delete order");
-    }
-  }
-
-  function formatDate(iso?: string | null) {
-    if (!iso) return "-";
-    const d = new Date(iso);
-    return Number.isNaN(d.getTime()) ? "-" : d.toLocaleDateString();
-  }
+  if (loading) return <div className="p-6">Loading orders…</div>;
+  if (error) return <div className="p-6 text-red-600">{error}</div>;
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Header */}
-      <header className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-800">Orders</h2>
-          <p className="text-sm text-gray-500">List of created orders</p>
-        </div>
+    <div className="max-w-5xl mx-auto p-6">
+      <h1 className="text-2xl font-semibold mb-4">Orders</h1>
 
-        <div className="flex flex-col sm:flex-row gap-2">
-          <input
-            placeholder="Search by customer..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="h-11 px-4 rounded-lg border border-gray-300
-                       focus:ring-2 focus:ring-blue-500"
-          />
-          <CustomButton onClick={() => fetchOrders(debouncedSearch)}>
-            Search
-          </CustomButton>
-          <CustomButton
-            variant="primary"
-            onClick={() => {
-              setSearch("");
-              setDebouncedSearch("");
-              fetchOrders();
-            }}
-          >
-            Clear
-          </CustomButton>
-        </div>
-      </header>
+      <div className="overflow-x-auto bg-white border rounded-lg shadow-sm">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead>
+            <tr>
+              <th className="px-4 py-2 text-left text-sm">Order ID</th>
+              <th className="px-4 py-2 text-left text-sm">Quantity</th>
+              <th className="px-4 py-2 text-left text-sm">Urgency</th>
+              <th className="px-4 py-2 text-left text-sm">Return Date</th>
+              <th className="px-4 py-2 text-right text-sm">Actions</th>
+            </tr>
+          </thead>
 
-      {error && (
-        <div className="text-sm text-red-600 border border-red-200 bg-red-50 rounded-lg p-3">
-          {error}
-        </div>
-      )}
-
-      {loading ? (
-        <div className="py-10 text-center text-sm text-gray-500">
-          Loading orders…
-        </div>
-      ) : orders.length === 0 ? (
-        <div className="py-10 text-center text-sm text-gray-500 border border-dashed rounded-lg">
-          No orders found.
-        </div>
-      ) : (
-        <>
-          {/* Desktop Table */}
-          <div className="hidden md:block overflow-hidden border border-gray-200 rounded-xl">
-            <table className="w-full">
-              <thead className="bg-gray-100">
-                <tr>
-                  {[
-                    "Name",
-                    "Phone",
-                    "Quantity",
-                    "Return Expected",
-                    "Priority",
-                    "Status",
-                    "Actions",
-                  ].map((h) => (
-                    <th
-                      key={h}
-                      className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase"
-                    >
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map((o) => (
-                  <tr
-                    key={o.order_id}
-                    className="border-t hover:bg-gray-50 transition"
-                  >
-                    <td className="px-6 py-4 text-sm">
-                      {o.customer_name ?? o.customer_id}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">
-                      {o.customer_phone ?? "-"}
-                    </td>
-                    <td className="px-6 py-4 text-sm">{o.quantity ?? "-"}</td>
-                    <td className="px-6 py-4 text-sm">
-                      {formatDate(o.return_expected_by)}
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      {o.availability_status ?? "-"}
-                    </td>
-                    <td className="px-6 py-4 text-sm">
-                      {o.status ?? "-"}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex gap-2">
-                        <CustomButton
-                          onClick={() =>
-                            (window.location.href = `/customer-orders/${o.customer_id}`)
-                          }
-                        >
-                          View
-                        </CustomButton>
-                        <CustomButton
-                          variant="danger"
-                          onClick={() => handleDelete(o.order_id)}
-                        >
-                          Delete
-                        </CustomButton>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Mobile Cards */}
-          <div className="md:hidden space-y-3">
+          <tbody className="divide-y">
             {orders.map((o) => (
-              <div
-                key={o.order_id}
-                className="border border-gray-200 rounded-lg p-4 space-y-2 bg-white"
-              >
-                <div className="text-sm font-semibold">
-                  {o.customer_name ?? o.customer_id}
-                </div>
-                <div className="text-xs text-gray-500">
-                  {o.customer_phone ?? "-"}
-                </div>
-                <div className="text-xs text-gray-500">
-                  Return: {formatDate(o.return_expected_by)}
-                </div>
-
-                <div className="flex gap-2 pt-2">
-                  <CustomButton
-                    className="flex-1"
-                    onClick={() =>
-                      (window.location.href = `/customer-orders/${o.customer_id}`)
-                    }
+              <tr key={o.order_id}>
+                <td className="px-4 py-2">{o.order_id}</td>
+                <td className="px-4 py-2">{o.quantity}</td>
+                <td className="px-4 py-2">{o.availability_status}</td>
+                <td className="px-4 py-2">
+                  {new Date(o.return_expected_by).toLocaleDateString()}
+                </td>
+                <td className="px-4 py-2 text-right space-x-2">
+                  <button
+                    className="text-blue-600 hover:underline"
+                    onClick={() => navigate(`/orders/view/${o.order_id}`)}
                   >
-                    View
-                  </CustomButton>
-                  <CustomButton
-                    variant="danger"
-                    className="flex-1"
-                    onClick={() => handleDelete(o.order_id)}
+                    View 
+                  </button>
+                  <button
+                    className="text-yellow-600 hover:underline"
+                    onClick={() => navigate(`/orders/edit/${o.order_id}`)}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    className="text-red-600 hover:underline"
+                    onClick={() => deleteOrder(o.order_id)}
                   >
                     Delete
-                  </CustomButton>
-                </div>
-              </div>
+                  </button>
+                </td>
+              </tr>
             ))}
-          </div>
-        </>
-      )}
-
-      {/* Modal */}
-      <Modal
-        visible={!!detailsOrder}
-        title="Order Details"
-        onClose={() => setDetailsOrder(null)}
-      >
-        {detailsOrder && (
-          <div className="text-sm">
-            <strong>Order ID:</strong> {detailsOrder.order_id}
-          </div>
-        )}
-      </Modal>
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
