@@ -14,12 +14,43 @@ type OrderRow = {
   status: string;
 };
 
+const ORDER_STATUS_OPTIONS = [
+  "PENDING",
+  "IN_PROGRESS",
+  "COMPLETED",
+  "CANCELLED",
+] as const;
+
+type OrderStatus = typeof ORDER_STATUS_OPTIONS[number];
+
+
 const ORDER_BASE = BASE_URL + "order/order";
 
 export default function OrderList() {
   const [orders, setOrders] = useState<OrderRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+const updateStatus = async (orderId: string, newStatus: OrderStatus) => {
+  try {
+    // Optimistic UI update
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.order_id === orderId ? { ...o, status: newStatus } : o
+      )
+    );
+
+    await fetch(`${BASE_URL}order/order/${orderId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ status: newStatus }),
+    });
+  } catch (err) {
+    console.error(err);
+    setError("Failed to update order status");
+  }
+};
 
 
   useEffect(() => {
@@ -59,7 +90,24 @@ export default function OrderList() {
                 <td className="px-3 py-2">
                   {order.availability_status}
                 </td>
-                <td className="px-3 py-2">{order.status}</td>
+                <td className="px-3 py-2">
+                  <select
+                    value={order.status}
+                    onChange={(e) =>
+                      updateStatus(
+                        order.order_id,
+                        e.target.value as OrderStatus
+                      )
+                    }
+                    className="border rounded px-2 py-1 text-sm focus:outline-none focus:ring"
+                  >
+                    {ORDER_STATUS_OPTIONS.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                  </select>
+                </td>
                 <td className="px-3 py-2">
                   {new Date(order.created_at).toLocaleDateString()}
                 </td>

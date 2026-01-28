@@ -18,6 +18,16 @@ const ORDER_HISTORY_BY_CUSTOMER =
 
 const ORDER_DELETE = BASE_URL + "order/order";
 
+const ORDER_STATUS_OPTIONS = [
+  "PENDING",
+  "IN_PROGRESS",
+  "COMPLETED",
+  "CANCELLED",
+] as const;
+
+type OrderStatus = typeof ORDER_STATUS_OPTIONS[number];
+
+
 export default function OrderHistory() {
   const { customerId } = useParams();
   const navigate = useNavigate();
@@ -55,6 +65,26 @@ export default function OrderHistory() {
       alert("Failed to delete order");
     }
   }
+async function updateStatus(orderId: string, newStatus: OrderStatus) {
+  try {
+    // Optimistic UI update
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.order_id === orderId ? { ...o, status: newStatus } : o
+      )
+    );
+
+    await fetch(`${ORDER_DELETE}/${orderId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ status: newStatus }),
+    });
+  } catch {
+    alert("Failed to update order status");
+  }
+}
 
   if (loading) return <div className="p-6">Loading order history…</div>;
   if (error) return <div className="p-6 text-red-600">{error}</div>;
@@ -91,8 +121,24 @@ export default function OrderHistory() {
                   {order.customer_name}
                 </td>
                 <td className="px-3 py-2">
-                  {order.status}
+                  <select
+                    value={order.status}
+                    onChange={(e) =>
+                      updateStatus(
+                        order.order_id,
+                        e.target.value as OrderStatus
+                      )
+                    }
+                    className="border rounded px-2 py-1 text-sm focus:outline-none focus:ring"
+                  >
+                    {ORDER_STATUS_OPTIONS.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                  </select>
                 </td>
+
                 <td className="px-3 py-2">
                   {order.quantity}
                 </td>

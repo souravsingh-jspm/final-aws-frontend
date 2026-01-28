@@ -295,7 +295,7 @@ setGarments(sorted);    })
         <StatCard title="Total Orders" value={data.orders.total} />
       </div>
 
-      {/* AVAILABILITY */}
+      {/* AVAILABILITY
       <section className="dashboard__section">
         <h3>Availability</h3>
         <div className="dashboard__grid">
@@ -307,7 +307,7 @@ setGarments(sorted);    })
           <StatusItem label="Urgent" value={data.availability.urgent} success />
           <StatusItem label="Normal" value={data.availability.normal} warning />
         </div>
-      </section>
+      </section> */}
 
       {/* ORDERS BY DATE */}
       <section className="dashboard__section">
@@ -461,27 +461,27 @@ function StatCard({ title, value }: { title: string; value: number }) {
   );
 }
 
-function StatusItem({
-  label,
-  value,
-  danger,
-  warning,
-  success,
-}: {
-  label: string;
-  value: number;
-  danger?: boolean;
-  warning?: boolean;
-  success?: boolean;
-}) {
-  return (
-    <div
-      className={`status-item ${
-        danger ? "danger" : warning ? "warning" : success ? "success" : ""
-      }`}
-    >
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
-}
+// function StatusItem({
+//   label,
+//   value,
+//   danger,
+//   warning,
+//   success,
+// }: {
+//   label: string;
+//   value: number;
+//   danger?: boolean;
+//   warning?: boolean;
+//   success?: boolean;
+// }) {
+//   return (
+//     <div
+//       className={`status-item ${
+//         danger ? "danger" : warning ? "warning" : success ? "success" : ""
+//       }`}
+//     >
+//       <span>{label}</span>
+//       <strong>{value}</strong>
+//     </div>
+//   );
+// }
